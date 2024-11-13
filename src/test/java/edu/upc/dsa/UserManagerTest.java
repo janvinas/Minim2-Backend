@@ -10,11 +10,11 @@ import org.junit.Test;
 import java.util.List;
 
 public class UserManagerTest {
-    UserManager tm;
+    Manager tm;
 
     @Before
     public void setUp() {
-        this.tm = UserManagerImpl.getInstance();
+        this.tm = ManagerImpl.getInstance();
         this.tm.addTrack("T1", "La Barbacoa", "Georgie Dann");
         this.tm.addTrack("T2", "Despacito", "Luis Fonsi");
         this.tm.addTrack("T3", "Ent3r S4ndm4n", "Metallica");

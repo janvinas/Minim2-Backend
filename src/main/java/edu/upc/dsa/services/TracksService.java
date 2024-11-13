@@ -1,8 +1,8 @@
 package edu.upc.dsa.services;
 
 
-import edu.upc.dsa.UserManager;
-import edu.upc.dsa.UserManagerImpl;
+import edu.upc.dsa.Manager;
+import edu.upc.dsa.ManagerImpl;
 import edu.upc.dsa.models.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -19,10 +19,10 @@ import java.util.List;
 @Path("/tracks")
 public class TracksService {
 
-    private UserManager tm;
+    private Manager tm;
 
     public TracksService() {
-        this.tm = UserManagerImpl.getInstance();
+        this.tm = ManagerImpl.getInstance();
         if (tm.size()==0) {
             this.tm.addTrack("La Barbacoa", "Georgie Dann");
             this.tm.addTrack("Despacito", "Luis Fonsi");

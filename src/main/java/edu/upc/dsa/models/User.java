@@ -2,20 +2,23 @@ package edu.upc.dsa.models;
 
 import edu.upc.dsa.util.RandomUtils;
 
+import java.util.HashMap;
+import java.util.List;
+
 public class User {
 
+    public String username;
+    public String password;
+    public String mail;
+    public String cookies;
+    public HashMap<StoreObject,Integer> myObjects;
 
-    String username;
-    String password;
-    String mail;
-
-    public User() {
-        this.setId(RandomUtils.getId());
-    }
     public User(String username, String password, String mail) {
-        this.username = username;
-        this.password = password;
-        this.mail = mail;
+        this.setUsername(username);
+        this.setPassword(password);
+        this.setMail(mail);
+        this.cookies=null;
+        this.myObjects = new HashMap<>();
     }
 
 
@@ -31,6 +34,10 @@ public class User {
         return mail;
     }
 
+    public void setMail(String mail) {
+        this.mail = mail;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -39,8 +46,20 @@ public class User {
         this.password = password;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public String getCookies(){
+        return cookies;
+    }
+
+    public void setCookies(String cookies){
+        this.cookies = cookies;
+    }
+
+    public HashMap<StoreObject,Integer> getMyObjects(){
+        return this.myObjects;
+    }
+
+    public void setMyObjects(HashMap<StoreObject,Integer> objects){
+        this.myObjects = objects;
     }
 
     @Override
