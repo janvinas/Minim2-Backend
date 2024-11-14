@@ -17,25 +17,19 @@ public interface Manager {
     public User addUser(String username, String password, String email);
     public User getUser(String username);
     public User getUser1(String username) throws UserNotFoundException;
-    public User getMail (String mail);
-    public User getMail1(String mail) throws MailNotFoundException;
+    public User getMail (String mail) throws MailNotFoundException;
 
     //Store related
     public StoreObject addToStore(StoreObject object);
     public StoreObject addToStore(String name, int price);
-    public StoreObject getObject(String name);
-    public StoreObject getObject1(String name) throws ObjectNotFoundException;
+    public StoreObject getObject(String name) throws ObjectNotFoundException;
 
     //Register
     public boolean register(String username, String password, String mail);
 
     //Login through username and through mail
-    public int login1(String username, String password);
-    public int login11(String username, String password) throws UserNotFoundException;
-    public int login12(String username, String password) throws WrongPasswordException;
-    public int login2(String mail, String password);
-    public int login21(String mail, String password) throws MailNotFoundException;
-    public int login22(String mail, String password) throws WrongPasswordException;
+    public int login1(String username, String password)throws UserNotFoundException, WrongPasswordException;
+    public int login2(String mail, String password)throws UserNotFoundException, WrongPasswordException;
 
     //List of Users
     public List<User> findAllUsers();

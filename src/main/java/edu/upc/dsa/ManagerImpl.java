@@ -47,7 +47,7 @@ public class ManagerImpl implements Manager {
         return this.addUser(user);
     }
 
-    public User getUser(String username){
+    public User getUser(String username) throws UserNotFoundException{
         for (User u:users){
             if(u.getUsername().equals(username)){
                 logger.info("Returning User: "+u);
@@ -55,7 +55,7 @@ public class ManagerImpl implements Manager {
             }
         }
         logger.warn("User not found");
-        return null;
+        throw new UserNotFoundException();
     }
 
     public User getUser1(String username) throws UserNotFoundException{
@@ -126,64 +126,40 @@ public class ManagerImpl implements Manager {
 
     //Login through username and through email
 
-    public int login1(String username, String password){
+    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException{
         User u = getUser(username);
         if(u==null){
             logger.warn("User not found");
-            return 2;
+            throw new UserNotFoundException();
         }
         else{
             if(u.getPassword().equals(password)){
                 logger.info("Login successful");
-                return 0;
+                return u;
             }
             else{
                 logger.warn("Wrong password");
-                return 1;
+                throw new WrongPasswordException();
             }
         }
     }
 
-    public int login11(String username, String password) throws UserNotFoundException{
-        int i = login1(username, password);
-        if(i==2) throw new UserNotFoundException();
-        return i;
-    }
-
-    public int login12(String username, String password) throws WrongPasswordException{
-        int i = login1(username,password);
-        if(i==1) throw new WrongPasswordException();
-        return i;
-    }
-
-    public int login2(String mail, String password){
+    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException{
         User u = getMail(mail);
         if(u==null){
             logger.warn("User not found");
-            return 2;
+            throw new UserNotFoundException();
         }
         else{
             if(u.getPassword().equals(password)){
                 logger.info("Login successful");
-                return 0;
+                return u;
             }
             else{
                 logger.warn("Wrong password");
-                return 1;
+                throw new WrongPasswordException();
             }
         }
-    }
-
-    public int login21(String username, String password) throws MailNotFoundException{
-        int i = login1(username, password);
-        if(i==2) throw new MailNotFoundException();
-        return i;
-    }
-
-    public int login22(String username, String password) throws WrongPasswordException{
-        int i = login1(username,password);
-        if(i==1) throw new WrongPasswordException();
-        return i;
     }
 
     //List of Users
