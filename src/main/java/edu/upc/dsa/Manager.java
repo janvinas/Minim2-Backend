@@ -28,8 +28,8 @@ public interface Manager {
     public boolean register(String username, String password, String mail);
 
     //Login through username and through mail
-    public int login1(String username, String password)throws UserNotFoundException, WrongPasswordException;
-    public int login2(String mail, String password)throws UserNotFoundException, WrongPasswordException;
+    public User login1(String username, String password)throws UserNotFoundException, WrongPasswordException;
+    public User login2(String mail, String password)throws UserNotFoundException, WrongPasswordException;
 
     //List of Users
     public List<User> findAllUsers();
@@ -40,6 +40,11 @@ public interface Manager {
     //Get the Objects of a User and the Store
     public HashMap<StoreObject,Integer> getUserObjects(String username);
     public List<StoreObject> findAllObjects();
+
+    //Token related
+    public UserToken generateToken(String username);
+    public boolean validateToken(String username, String token);
+    public boolean deleteToken(String username);
 
     //Clear and Size of lists used (Users & StoreObjects)
     public void clear();
