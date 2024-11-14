@@ -12,7 +12,9 @@ import java.security.DomainLoadStoreParameter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeMap;
 
+import edu.upc.dsa.models.UserToken;
 import org.apache.log4j.Logger;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
@@ -21,12 +23,15 @@ public class ManagerImpl implements Manager {
     private static Manager instance;
     protected List<User> users;
     protected List<StoreObject> objects;
+    protected TreeMap<String, UserToken> tokens;
     protected Store store;
+
     final static Logger logger = Logger.getLogger(ManagerImpl.class);
 
     private ManagerImpl() {
         this.users = new LinkedList<>();
         this.objects = new LinkedList<>();
+        this.tokens = new TreeMap<>();
     }
 
     public static Manager getInstance() {
@@ -58,13 +63,7 @@ public class ManagerImpl implements Manager {
         throw new UserNotFoundException();
     }
 
-    public User getUser1(String username) throws UserNotFoundException{
-        User u = getUser(username);
-        if(u==null) throw new UserNotFoundException();
-        return u;
-    }
-
-    public User getMail(String mail){
+    public User getMail(String mail) throws MailNotFoundException{
         for(User u:users){
             if(u.getMail().equals(mail)){
                 logger.info("Returning User: "+u);
@@ -72,13 +71,7 @@ public class ManagerImpl implements Manager {
             }
         }
         logger.warn("Mail not found");
-        return null;
-    }
-
-    public User getMail1(String mail) throws MailNotFoundException {
-        User u = getMail(mail);
-        if(u==null) throw new MailNotFoundException();
-        return u;
+        throw new MailNotFoundException();
     }
 
     //Store related
@@ -95,7 +88,7 @@ public class ManagerImpl implements Manager {
         return this.addToStore(object);
     }
 
-    public StoreObject getObject(String name){
+    public StoreObject getObject(String name) throws ObjectNotFoundException{
         for(StoreObject o : objects){
             if (o.getName().equals(name)){
                 logger.info("Returning Object:" +o);
@@ -103,63 +96,43 @@ public class ManagerImpl implements Manager {
             }
         }
         logger.warn("Object not found");
-        return null;
+        throw new ObjectNotFoundException();
     }
 
-    public StoreObject getObject1(String name){
-        StoreObject o = getObject(name);
-        if(o==null) throw new ObjectNotFoundException();
-        return o;
-    }
 
     //Register
 
     public boolean register(String username, String password, String mail){
-        User u = getUser(username);
-        if(u==null){
+        try{
+            getUser(username);
+            return false;
+        }catch(UserNotFoundException e){
             logger.info("Adding user with credentials: Username="+username+", Password="+password+", Mail:"+mail);
             addUser(username,password,mail);
             return true;
         }
-        return false;
     }
 
     //Login through username and through email
 
-    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException{
-        User u = getUser(username);
-        if(u==null){
-            logger.warn("User not found");
-            throw new UserNotFoundException();
-        }
-        else{
-            if(u.getPassword().equals(password)){
-                logger.info("Login successful");
-                return u;
-            }
-            else{
-                logger.warn("Wrong password");
-                throw new WrongPasswordException();
-            }
+    private User login(User u, String password){
+        if(u.getPassword().equals(password)){
+            logger.info("Login successful");
+            return u;
+        }else{
+            logger.warn("Wrong password");
+            throw new WrongPasswordException();
         }
     }
 
-    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException{
+    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException{
+        User u = getUser(username);
+        return login(u, password);
+    }
+
+    public User login2(String mail, String password) throws MailNotFoundException, WrongPasswordException{
         User u = getMail(mail);
-        if(u==null){
-            logger.warn("User not found");
-            throw new UserNotFoundException();
-        }
-        else{
-            if(u.getPassword().equals(password)){
-                logger.info("Login successful");
-                return u;
-            }
-            else{
-                logger.warn("Wrong password");
-                throw new WrongPasswordException();
-            }
-        }
+        return login(u, password);
     }
 
     //List of Users
@@ -202,13 +175,30 @@ public class ManagerImpl implements Manager {
 
     //Get list of objects of a User and the Store
 
-    public HashMap<StoreObject,Integer> getUserObjects(String username){
+    public HashMap<StoreObject,Integer> getUserObjects(String username) throws UserNotFoundException{
         User u = getUser(username);
         return u.getMyObjects();
     }
 
     public List<StoreObject> findAllObjects(){
         return this.objects;
+    }
+
+    public UserToken generateToken(String username){
+        UserToken token = new UserToken();
+        tokens.put(username, token);
+        return token;
+    }
+
+    public boolean validateToken(String username, String token){
+        UserToken userToken = tokens.get(username);
+        if(token == null) return false;
+        if(!userToken.getToken().equals(token)) return false;
+        return !userToken.hasExpired();
+    }
+
+    public void deleteToken(String username){
+        tokens.remove(username);
     }
 
     //Clear & Size

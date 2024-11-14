@@ -1,4 +1,4 @@
-package edu.upc.dsa.util;
+package edu.upc.dsa.models;
 
 import java.security.SecureRandom;
 import java.time.ZonedDateTime;
@@ -27,5 +27,9 @@ public class UserToken {
 
     public void renewToken(){
         this.expiration = ZonedDateTime.now().plusDays(1);
+    }
+
+    public boolean hasExpired(){
+        return this.expiration.isBefore(ZonedDateTime.now());
     }
 }

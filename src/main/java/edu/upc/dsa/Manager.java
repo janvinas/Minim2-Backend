@@ -6,6 +6,7 @@ import edu.upc.dsa.exceptions.UserNotFoundException;
 import edu.upc.dsa.exceptions.WrongPasswordException;
 import edu.upc.dsa.models.StoreObject;
 import edu.upc.dsa.models.User;
+import edu.upc.dsa.models.UserToken;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,7 @@ public interface Manager {
     //User related
     public User addUser(User t);
     public User addUser(String username, String password, String email);
-    public User getUser(String username);
-    public User getUser1(String username) throws UserNotFoundException;
+    public User getUser(String username) throws UserNotFoundException;
     public User getMail (String mail) throws MailNotFoundException;
 
     //Store related
@@ -28,8 +28,8 @@ public interface Manager {
     public boolean register(String username, String password, String mail);
 
     //Login through username and through mail
-    public User login1(String username, String password)throws UserNotFoundException, WrongPasswordException;
-    public User login2(String mail, String password)throws UserNotFoundException, WrongPasswordException;
+    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException;
+    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException;
 
     //List of Users
     public List<User> findAllUsers();
@@ -38,13 +38,13 @@ public interface Manager {
     public User updateUser2(User t, String password);
 
     //Get the Objects of a User and the Store
-    public HashMap<StoreObject,Integer> getUserObjects(String username);
+    public HashMap<StoreObject,Integer> getUserObjects(String username) throws UserNotFoundException;
     public List<StoreObject> findAllObjects();
 
     //Token related
     public UserToken generateToken(String username);
     public boolean validateToken(String username, String token);
-    public boolean deleteToken(String username);
+    public void deleteToken(String username);
 
     //Clear and Size of lists used (Users & StoreObjects)
     public void clear();
