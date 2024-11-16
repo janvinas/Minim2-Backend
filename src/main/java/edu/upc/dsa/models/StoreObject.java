@@ -3,9 +3,13 @@ package edu.upc.dsa.models;
 public class StoreObject {
 
     public String name;
-    public int price;
+    public double price;
 
-    public StoreObject(String Name, int Price){
+    public StoreObject() {
+
+    }
+
+    public StoreObject(String Name, double Price){
         this.setName(Name);
         this.setPrice(Price);
     }
@@ -18,11 +22,11 @@ public class StoreObject {
         this.name = name;
     }
 
-    public int getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 

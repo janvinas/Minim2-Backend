@@ -5,6 +5,8 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 
 public class UserToken {
+    public static final int MAX_AGE = 24*3600;
+
     private String token;
     private ZonedDateTime expiration;
 
@@ -14,7 +16,7 @@ public class UserToken {
         byte[] randomBytes = new byte[24];
         random.nextBytes(randomBytes);
         this.token = base64Encoder.encodeToString(randomBytes);
-        this.expiration = ZonedDateTime.now().plusDays(1);   // the token has a duration of one day
+        this.expiration = ZonedDateTime.now().plusSeconds(MAX_AGE);   // the token has a duration of one day
     }
 
     public String getToken() {

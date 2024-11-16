@@ -1,55 +1,55 @@
 package edu.upc.dsa;
 
-import edu.upc.dsa.exceptions.MailNotFoundException;
-import edu.upc.dsa.exceptions.ObjectNotFoundException;
-import edu.upc.dsa.exceptions.UserNotFoundException;
-import edu.upc.dsa.exceptions.WrongPasswordException;
+import edu.upc.dsa.exceptions.*;
+import edu.upc.dsa.models.InventoryObject;
 import edu.upc.dsa.models.StoreObject;
 import edu.upc.dsa.models.User;
 import edu.upc.dsa.models.UserToken;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 
 public interface Manager {
 
     //User related
-    public User addUser(User t);
-    public User addUser(String username, String password, String email);
-    public User getUser(String username) throws UserNotFoundException;
-    public User getMail (String mail) throws MailNotFoundException;
+    User addUser(User t);
+    User addUser(String username, String password, String email);
+    User getUser(String username) throws UserNotFoundException;
+    User getMail (String mail) throws MailNotFoundException;
 
     //Store related
-    public StoreObject addToStore(StoreObject object);
-    public StoreObject addToStore(String name, int price);
-    public StoreObject getObject(String name) throws ObjectNotFoundException;
+    StoreObject addToStore(StoreObject object);
+    StoreObject addToStore(String name, double price);
+    StoreObject getObject(String name) throws ObjectNotFoundException;
+
+    void buyObject(String username, String objectName, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException;
 
     //Register
-    public boolean register(String username, String password, String mail);
+    boolean register(String username, String password, String mail);
 
     //Login through username and through mail
-    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException;
-    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException;
+    User login1(String username, String password) throws UserNotFoundException, WrongPasswordException;
+    User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException;
 
     //List of Users
-    public List<User> findAllUsers();
-    public void deleteUser(String username);
-    public User updateUser1(User t, String username);
-    public User updateUser2(User t, String password);
+    List<User> findAllUsers();
+    void deleteUser(String username);
+    User updateUser1(User t, String username);
+    User updateUser2(User t, String password);
 
     //Get the Objects of a User and the Store
-    public HashMap<StoreObject,Integer> getUserObjects(String username) throws UserNotFoundException;
-    public List<StoreObject> findAllObjects();
+    ArrayList<InventoryObject> getUserObjects(String username) throws UserNotFoundException;
+    List<StoreObject> findAllObjects();
 
     //Token related
-    public UserToken generateToken(String username);
-    public boolean validateToken(String username, String token);
-    public void deleteToken(String username);
+    UserToken generateToken(String username);
+    boolean validateToken(String username, String token);
+    void deleteToken(String username);
 
     //Clear and Size of lists used (Users & StoreObjects)
-    public void clear();
-    public void clearUsers();
-    public void clearObjects();
-    public int sizeUsers();
-    public int sizeObjects();
+    void clear();
+    void clearUsers();
+    void clearObjects();
+    int sizeUsers();
+    int sizeObjects();
 }

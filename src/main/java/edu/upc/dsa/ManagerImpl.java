@@ -1,20 +1,12 @@
 package edu.upc.dsa;
 
-import edu.upc.dsa.exceptions.MailNotFoundException;
-import edu.upc.dsa.exceptions.ObjectNotFoundException;
-import edu.upc.dsa.exceptions.UserNotFoundException;
-import edu.upc.dsa.exceptions.WrongPasswordException;
-import edu.upc.dsa.models.Store;
-import edu.upc.dsa.models.StoreObject;
-import edu.upc.dsa.models.User;
+import edu.upc.dsa.exceptions.*;
+import edu.upc.dsa.models.*;
 
+import java.lang.reflect.Array;
 import java.security.DomainLoadStoreParameter;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
-import edu.upc.dsa.models.UserToken;
 import org.apache.log4j.Logger;
 
 import javax.management.modelmbean.InvalidTargetObjectTypeException;
@@ -83,7 +75,7 @@ public class ManagerImpl implements Manager {
         return object;
     }
 
-    public StoreObject addToStore(String name, int price){
+    public StoreObject addToStore(String name, double price){
         StoreObject object = new StoreObject(name,price);
         return this.addToStore(object);
     }
@@ -99,6 +91,26 @@ public class ManagerImpl implements Manager {
         throw new ObjectNotFoundException();
     }
 
+    @Override
+    public void buyObject(String username, String objectName, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException {
+        User user = getUser(username);
+        StoreObject object = getObject(objectName);
+
+        double requiredMoney = object.getPrice() * quantity;
+        if(user.getMoney() < requiredMoney){
+            throw new NotEnoughMoneyException("Not enough money");
+        }
+
+        user.money -= requiredMoney;
+        for(InventoryObject inventoryObject : user.getMyObjects()){
+            if(inventoryObject.getName().equals(objectName)){
+                inventoryObject.quantity += quantity;
+                return;
+            }
+        }
+
+        user.getMyObjects().add(new InventoryObject(objectName, quantity));
+    }
 
     //Register
 
@@ -110,6 +122,7 @@ public class ManagerImpl implements Manager {
             logger.info("Adding user with credentials: Username="+username+", Password="+password+", Mail:"+mail);
             addUser(username,password,mail);
             return true;
+
         }
     }
 
@@ -175,7 +188,7 @@ public class ManagerImpl implements Manager {
 
     //Get list of objects of a User and the Store
 
-    public HashMap<StoreObject,Integer> getUserObjects(String username) throws UserNotFoundException{
+    public ArrayList<InventoryObject> getUserObjects(String username) throws UserNotFoundException{
         User u = getUser(username);
         return u.getMyObjects();
     }
@@ -191,8 +204,9 @@ public class ManagerImpl implements Manager {
     }
 
     public boolean validateToken(String username, String token){
-        UserToken userToken = tokens.get(username);
         if(token == null) return false;
+        UserToken userToken = tokens.get(username);
+        if(userToken == null) return false;
         if(!userToken.getToken().equals(token)) return false;
         return !userToken.hasExpired();
     }
