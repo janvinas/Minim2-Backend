@@ -65,6 +65,11 @@ public class ManagerImpl implements Manager {
         logger.warn("Mail not found");
         throw new MailNotFoundException();
     }
+    public void addPuntos(String username, int puntos) throws UserNotFoundException {
+        logger.info("Adding points: "+puntos);
+        this.getUser(username).puntos ++;
+        logger.info("Points added");
+    }
 
     //Store related
 
@@ -92,7 +97,8 @@ public class ManagerImpl implements Manager {
     }
 
     @Override
-    public void buyObject(String username, String objectName, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException {
+    public void buyObject(String username, String objectName, int quantity)
+            throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException {
         User user = getUser(username);
         StoreObject object = getObject(objectName);
 

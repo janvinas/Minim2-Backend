@@ -17,12 +17,17 @@ public interface Manager {
     User getUser(String username) throws UserNotFoundException;
     User getMail (String mail) throws MailNotFoundException;
 
+    void addPuntos(String username, int puntos) throws UserNotFoundException;
+
+
+
     //Store related
     StoreObject addToStore(StoreObject object);
     StoreObject addToStore(String name, double price);
     StoreObject getObject(String name) throws ObjectNotFoundException;
 
-    void buyObject(String username, String objectName, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException;
+    void buyObject(String username, String objectName, int quantity)
+            throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException;
 
     //Register
     boolean register(String username, String password, String mail);

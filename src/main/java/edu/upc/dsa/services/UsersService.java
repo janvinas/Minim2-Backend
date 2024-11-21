@@ -20,9 +20,14 @@ public class UsersService {
 
     Manager manager = ManagerImpl.getInstance();
 
-    public UsersService(){
+    public UsersService()  {
         if(manager.sizeUsers() == 0){
             manager.addUser("jan", "jan", "jan.vinas@estudiantat.upc.edu");
+            try {
+                manager.addPuntos("jan", 5);
+            } catch (UserNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -115,6 +120,26 @@ public class UsersService {
             // crec que mai hauriem d'arribar aquí
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+    }
+    @GET
+    @Path("/puntos/{username}")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success", response = String.class),
+            @ApiResponse(code = 403, message = "Incorrect credentials")
+    })
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getPuntos(@PathParam("username") String username, @CookieParam("token") Cookie token){
+        if(token == null || !manager.validateToken(username, token.getValue())){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        try{
+            GenericEntity<Integer> entity = new GenericEntity<Integer>(manager.getUser(username).getPuntos()) {};
+            return Response.ok(entity).build();
+        }catch(UserNotFoundException ignored){
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
     }
 
 }

@@ -28,6 +28,12 @@ public class ShopService {
             manager.addToStore("Poció màgica", 15);
             manager.addToStore("Plàtan", 1);
             manager.addToStore("Pell de plàtan", 0.3);
+            try {
+                manager.buyObject("jan", "Plàtan", 4);
+                manager.buyObject("jan", "Pell de plàtan", 14);
+            } catch (UserNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -52,7 +58,10 @@ public class ShopService {
             @ApiResponse(code = 402, message = "Not enough money")
 
     })
-    public Response buyObject(@PathParam("object") String object, @PathParam("username") String username, @PathParam("quantity") int quantity, @CookieParam("token") Cookie token) {
+    public Response buyObject(@PathParam("object") String object,
+                              @PathParam("username") String username,
+                              @PathParam("quantity") int quantity,
+                              @CookieParam("token") Cookie token) {
         if(token == null || !manager.validateToken(username, token.getValue())){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
@@ -98,5 +107,6 @@ public class ShopService {
         }
 
     }
+
 
 }

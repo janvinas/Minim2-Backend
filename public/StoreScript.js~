@@ -1,0 +1,48 @@
+
+// Lista predeterminada de ítems
+const defaultItems = [
+    { name: "Plátano", price: 1 },
+    { name: "Piel de plátano", price: 0.3 },
+    { name: "Poción mágica", price: 15 }
+];
+
+// Función para renderizar ítems
+function renderItems(items) {
+    const list = $("#itemsList");
+    list.empty(); // Lo he usado para limpiar la lista antes de añadir nuevos elementos pa evitar errores
+    items.forEach(item => {
+        list.append(`<li class="list-group-item">${item.name} - ${item.price} coins</li>`);
+    });
+}
+
+// Función para cargar ítems desde la API o mostrar los predeterminados
+function loadItems() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert("Unauthorized. Redirecting to login.");
+        window.location.href = "index.html";
+        return;
+    }
+
+    $.ajax({
+            url: 'http://localhost:8080/dsaApp/shop/listObjects',
+            method: 'GET',
+
+            success: function (items) {
+                if (items && items.length > 0) {
+                    renderItems(items); // Renderiza los ítems recibidos del backend
+                } else {
+                    alert("No items received from the server. Showing default items.");
+                    renderItems(defaultItems);
+                }
+            },
+            error: function () {
+                alert("Error loading items from the server. Showing default items.");
+                renderItems(defaultItems);
+            }
+        });
+}
+
+
+$(document).ready(loadItems);
+

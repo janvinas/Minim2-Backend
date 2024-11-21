@@ -17,13 +17,17 @@ public class User {
     public String password;
     public String mail;
     public double money;
+    public int puntos;
     @JsonIgnore
     public ArrayList<InventoryObject> myObjects;
 
     public User(){
         this.myObjects = new ArrayList<>();
         this.money = 50;
+        this.puntos=0;
     }
+
+
 
     public User(String username, String password, String mail) {
         this();
@@ -32,6 +36,13 @@ public class User {
         this.setMail(mail);
     }
 
+    public int getPuntos() {
+        return puntos;
+    }
+
+    public void setPuntos(int puntos) {
+        this.puntos = puntos;
+    }
 
     public String getUsername() {
         return username;
