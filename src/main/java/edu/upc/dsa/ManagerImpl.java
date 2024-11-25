@@ -80,8 +80,8 @@ public class ManagerImpl implements Manager {
         return object;
     }
 
-    public StoreObject addToStore(String name, double price){
-        StoreObject object = new StoreObject(name,price);
+    public StoreObject addToStore(String name, double price, String URL){
+        StoreObject object = new StoreObject(name,price, URL);
         return this.addToStore(object);
     }
 

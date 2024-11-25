@@ -23,7 +23,7 @@ public interface Manager {
 
     //Store related
     StoreObject addToStore(StoreObject object);
-    StoreObject addToStore(String name, double price);
+    StoreObject addToStore(String name, double price, String URL);
     StoreObject getObject(String name) throws ObjectNotFoundException;
 
     void buyObject(String username, String objectName, int quantity)

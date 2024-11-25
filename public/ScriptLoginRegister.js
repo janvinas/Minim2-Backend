@@ -1,17 +1,38 @@
+$(document).ready(() => {
+    const urlParameters = new URLSearchParams(window.location.search);
+    const reason = urlParameters.get("reason");
+    if(reason != null){
+        if(reason == "unauthenticated"){
+            $("#top-error").text("Tiene que iniciar sesion antes de acceder a una página restringida.");
+        }else if(reason == "session-expired"){
+            $("#top-error").text("Su sesión ha expirado. Por favor, vuelva a iniciarla.")
+        }else{
+            $("#top-error").text("Redirigido a login, motivo: " + reason);
+        }
+        $("#top-error").show();
+    }
+})
+
 
 function register() {
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const username = $("#username").val();
+    const email =  $("#email").val();
+    const password =  $("#password").val();
+    const confirmPassword = $("#confirmPassword").val();
+    $("#registerError").text("");
      // Verificamos que los campos no estén vacíos
-            if (!username || !email || !password) {
-                alert("Please fill in all fields!");
-                return;
-            }
+    if (!username || !email || !password || !confirmPassword) {
+        $("#registerError").text("Por favor rellene todos los campos");
+        return;
+    }
+    if(password != confirmPassword){
+        $("#registerError").text("Las contraseñas no coinciden");
+        return;
+    }
 
-            // Mostrar en consola los valores para verificar
-            console.log("Registering with:", { username, email, password });
-
+    // Mostrar en consola los valores para verificar
+    console.log("Registering with:", { username, email });
+    $("#registerLoading").show();
     $.ajax({
          url: 'http://localhost:8080/dsaApp/users/register',
          method: 'PUT',
@@ -22,36 +43,48 @@ function register() {
                          password: password
                          }),
 
-         success: function (response) {
-            alert("Registration successful: " + response.message);
+        success: function (response) {
+            $("#registerLoading").hide();
             localStorage.setItem('username', username);
             window.location.href = 'store.html';  // Esto es para que me redirija al store
-         },
-         error: function () {
-             alert("Error registering. Please try again.");
-         }
+        },
+        error: function () {
+            alert("Error registering. Please try again.");
+            $("#registerLoading").hide();
+        }
     });
 }
 
 function login() {
-    const loginUsername = document.getElementById("loginUsername").value;
-    const loginPassword = document.getElementById("loginPassword").value;
-
-   $.ajax({
-     url: 'http://localhost:8080/dsaApp/users/login',
-     method: 'POST',
-     contentType: 'application/json',
-     data: JSON.stringify({
-          username: loginUsername,
-          password: loginPassword
-     }),
-     success: function (response) {
-       alert("Login successful. Redirecting to the store...");
-       localStorage.setItem('username', loginUsername); // Save username
-       window.location.href = 'store.html';
-     },
-     error: function () {
-      alert("Invalid username or password. Please try again.");
-      }
-   });
+    const loginUsername = $("#loginUsername").val();
+    const loginPassword = $("#loginPassword").val();
+    if(!loginUsername || !loginPassword){
+        $("#loginError").text("Por favor rellene todos los campos");
+    }
+    $("#loginError").text("");
+    $("#loginLoading").show();
+    $.ajax({
+        url: 'http://localhost:8080/dsaApp/users/login',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            username: loginUsername,
+            password: loginPassword
+        }),
+        statusCode: {
+            403: () => {
+                $("#loginLoading").hide();
+                $("#loginError").text("El usuario no existe o la contraseña es incorrecta");
+            },
+            400: () => {
+                $("#loginLoading").hide();
+                $("#loginError").text("Error interno, vuelve a intentar");
+            },
+            200: () => {
+                $("#loginLoading").hide();
+                localStorage.setItem('username', loginUsername); // Save username
+                window.location.href = 'store.html';
+            }
+        }
+    });
 }

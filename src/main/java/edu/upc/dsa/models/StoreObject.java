@@ -4,14 +4,24 @@ public class StoreObject {
 
     public String name;
     public double price;
+    public String URL;
+
+    public void setURL(String URL) {
+        this.URL = URL;
+    }
+
+    public String getURL() {
+        return URL;
+    }
 
     public StoreObject() {
 
     }
 
-    public StoreObject(String Name, double Price){
+    public StoreObject(String Name, double Price, String URL){
         this.setName(Name);
         this.setPrice(Price);
+        this.setURL(URL);
     }
 
     public String getName() {

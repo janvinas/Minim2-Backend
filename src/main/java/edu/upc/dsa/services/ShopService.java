@@ -25,9 +25,9 @@ public class ShopService {
 
     public ShopService() {
         if(manager.sizeObjects() == 0) {
-            manager.addToStore("Poció màgica", 15);
-            manager.addToStore("Plàtan", 1);
-            manager.addToStore("Pell de plàtan", 0.3);
+            manager.addToStore("Poció màgica", 15, "/images/pocion.jpg");
+            manager.addToStore("Plàtan", 1, "/images/platano.jpg");
+            manager.addToStore("Pell de plàtan", 0.3, "/images/piel.jpg");
             try {
                 manager.buyObject("jan", "Plàtan", 4);
                 manager.buyObject("jan", "Pell de plàtan", 14);
