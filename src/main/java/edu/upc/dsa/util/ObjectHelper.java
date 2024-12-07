@@ -18,19 +18,13 @@ public class ObjectHelper {
         return sFields;
     }
 
-    public static void setter(Object entity, String property, Object value){
-        Class theClass = entity.getClass();
-        String fieldName = theClass.getName() + "." + property;
-        try {
-            Field field = theClass.getDeclaredField(fieldName);
+    public static void setter(Object entity, String property, Object value) {
+        try{
+            Field field = entity.getClass().getDeclaredField(property);
             field.setAccessible(true);
-            try {
-                field.set(entity,value);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
+            field.set(entity,value);
+        }catch(NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e){
+            e.printStackTrace();
         }
     }
 

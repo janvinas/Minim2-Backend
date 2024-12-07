@@ -1,19 +1,26 @@
 package edu.upc.dsa.dao;
 
 
+import edu.upc.dsa.Manager;
 import edu.upc.dsa.models.User;
 import edu.upc.dsa.orm.FactorySession;
 import edu.upc.dsa.orm.Session;
 
+import java.sql.SQLException;
 import java.util.List;
 
-public class UserDAOImpl implements UserDAO {
+public class DAO implements UserDAO {
 
-    public int addUser(String username, String password, String mail){
+    public User addUser(User user) {
+        return addUser(user.getUsername(), user.getPassword(), user.getMail());
+    }
+
+    public User addUser(String username, String password, String mail){
         Session session = null;
+        User user;
         try {
             session = FactorySession.openSession();
-            User user = new User(username,password,mail);
+            user = new User(username,password,mail);
             session.save(user);
         }
         catch (Exception e) {
@@ -22,7 +29,7 @@ public class UserDAOImpl implements UserDAO {
         finally {
             session.close();
         }
-        return 0;
+        return user;
     }
 
     public User getUser(int UserID){
@@ -46,8 +53,8 @@ public class UserDAOImpl implements UserDAO {
         try{
             session = FactorySession.openSession();
             user = (User) session.get(User.class, UserID);
-            session.update(user,username,password,UserID);
-        }catch(RuntimeException e){
+            //session.update(user,username,password,UserID);
+        }catch(SQLException e){
             throw new RuntimeException(e);
         }
         finally{
@@ -55,16 +62,14 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-    public void deleteUser(int UserID) {
+    public void deleteUser(int userID) {
         Session session = null;
-        User user = null;
         try{
             session = FactorySession.openSession();
-            user = (User) session.get(User.class, UserID);
-            session.delete(user);
+            session.delete(User.class, userID);
         }
-        catch(RuntimeException e){
-            throw new RuntimeException(e);
+        catch(SQLException  e){
+            e.printStackTrace();
         }
         finally{
             session.close();

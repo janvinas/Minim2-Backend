@@ -1,10 +1,11 @@
 package edu.upc.dsa.orm;
 
 import edu.upc.dsa.DB.SQLNotInsert;
+import edu.upc.dsa.DB.SQLNotSelect;
 import edu.upc.dsa.util.QueryHelper;
 import edu.upc.dsa.util.ObjectHelper;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.*;
 
@@ -15,29 +16,22 @@ public class SessionImpl implements Session {
         this.conn = conn;
     }
 
-    public void save(Object entity){
+    public void save(Object entity) throws SQLException{
 
         String InsertQuery = QueryHelper.CreateQueryINSERT(entity);
+        PreparedStatement pstm = conn.prepareStatement(InsertQuery);
 
-        PreparedStatement pstm = null;
+        int i = 1;
+        for (String field: ObjectHelper.getFields(entity)) {
+            try{
+                if(!entity.getClass().getDeclaredField(field).isAnnotationPresent(SQLNotInsert.class)){
+                    pstm.setObject(i++, ObjectHelper.getter(entity, field));
+                }
+            }catch(NoSuchFieldException ignored){}
 
-        try {
-            pstm = conn.prepareStatement(InsertQuery);
-
-            int i = 1;
-
-            for (String field: ObjectHelper.getFields(entity)) {
-                if(entity.getClass().getDeclaredField(field).isAnnotationPresent(SQLNotInsert.class)) continue;
-                pstm.setObject(i++, ObjectHelper.getter(entity, field));
-            }
-
-            pstm.executeQuery();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
         }
+
+        pstm.executeQuery();
 
     }
 
@@ -49,131 +43,113 @@ public class SessionImpl implements Session {
         }
     }
 
-    @Override
-    public Object get(Class theClass, Object ID){
-        return null;
-    }
 
-    public Object get(Class theClass, int ID){
+    public <T> T get(Class<T> theClass, int ID) throws SQLException{
 
-        String sql = QueryHelper.CreateQuerySELECT(theClass);
+        String sql = QueryHelper.CreateQuerySELECTbyId(theClass);
 
-        Object o = null;
+        T object;
         try {
-            o = theClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            object = theClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
         }
 
-        ResultSet res = null;
+        PreparedStatement pstm = conn.prepareStatement(sql);
+        pstm.setObject(1, ID);
+        pstm.executeQuery();
 
-        ResultSetMetaData rsmd = null;
-        try {
-            rsmd = res.getMetaData();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        ResultSet res = pstm.getResultSet();
+        if(!res.next()) return null;
+        ResultSetMetaData rsmd = res.getMetaData();
 
-        int numColumns = 0;
-        try {
-            numColumns = rsmd.getColumnCount();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        int i=0;
 
-        while (i<numColumns) {
-            String key = null;
+
+        int numColumns = rsmd.getColumnCount();
+        for (int i = 0; i < numColumns; i++) {
             try {
-                key = rsmd.getColumnName(i);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-            String value = null;
-            try {
-                value = res.getObject(i).toString();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            ObjectHelper.setter(o, key, value);
-
+                String key = rsmd.getColumnName(i);
+                if(theClass.getDeclaredField(key).isAnnotationPresent(SQLNotSelect.class)) continue;
+                Object value = res.getObject(i);
+                ObjectHelper.setter(object, key, value);
+            } catch (Exception ignored) {}
         }
-        return null;
+
+        return object;
     }
 
-    public void update(Object object,String username, String password, int ID){
-        String sql = QueryHelper.CreateUpdate(object);
-        PreparedStatement pstm = null;
-        try {
-            pstm = conn.prepareStatement(sql);
-            pstm.setObject(1,username);
-            pstm.setObject(2,password);
-            pstm.setInt(3,ID);
-            pstm.executeQuery();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    public <T> void update(Class<T> theClass, Map<String, Object> changes, Map<String, Object> selectors) throws SQLException{
+        String sql = QueryHelper.CreateUpdate(theClass, changes, selectors);
+        PreparedStatement pstm = conn.prepareStatement(sql);
+        int i = 1;
+        for(Object val : changes.values()){
+            pstm.setObject(i++, val);
         }
-
+        for(Object val : selectors.values()){
+            pstm.setObject(i++, val);
+        }
+        pstm.executeQuery();
     }
 
-    public void delete(Object object){
-        String sql = QueryHelper.CreateDelete(object);
-        PreparedStatement pstm = null;
-        try {
-            pstm = conn.prepareStatement(sql);
-            pstm.executeQuery();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public <T> void update(Class<T> theClass, Map<String, Object> changes, int id) throws SQLException{
+        update(theClass, changes, Map.of("ID", id));
     }
 
-    public <T> List<Object> findAll(Class<T> theClass){
-        String sql = QueryHelper.CreateSelectAll(theClass);
-        PreparedStatement pstm = null;
-        List<Object> results = new ArrayList<>();
-        try{
-            pstm = conn.prepareStatement(sql);
-            ResultSet res = pstm.executeQuery();
-            int columns = res.getMetaData().getColumnCount();
-
-            while (res.next()) {
-                List<T> row = new ArrayList<>();
-                for (int i = 1; i <= columns; i++) {
-                    row.add((T) res.getObject(i)); // Fetch column value dynamically
-                }
-                results.add(row); // Add the row to the results list
+    public <T> void delete(Class<T> theClass, Map<String, Object> params) throws SQLException {
+        String sql = QueryHelper.CreateQueryDELETEbyParams(theClass, params);
+        PreparedStatement pstm = conn.prepareStatement(sql);
+        {
+            int i = 1;
+            for(Object o : params.values()){
+                pstm.setObject(i++, o);
             }
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
         }
+        pstm.executeQuery();
+    }
+
+    public <T> void delete(Class<T> theClass, int id) throws SQLException {
+        delete(theClass, Map.of("id", id));
+    }
+
+    public <T> List<T> findAll(Class<T> theClass) throws SQLException{
+        return findAll(theClass, new HashMap<>());
+    }
+
+    public <T> List<T> findAll(Class<T> theClass, Map<String, Object> params) throws SQLException{
+        String sql = QueryHelper.CreateQuerySELECTbyParams(theClass, params);
+        PreparedStatement pstm = conn.prepareStatement(sql);
+        List<T> results = new ArrayList<>();
+        {
+            int i = 1;
+            for(Object o : params.values()){
+                pstm.setObject(i++, o);
+            }
+        }
+        ResultSet res = pstm.executeQuery();
+        ResultSetMetaData rsmd = res.getMetaData();
+
+        while (res.next()) {
+            int numColumns = rsmd.getColumnCount();
+            T object;
+            try{
+                object = theClass.getDeclaredConstructor().newInstance();
+            }catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+                continue;
+            }
+            for (int i = 0; i < numColumns; i++) {
+                try {
+                    String key = rsmd.getColumnName(i);
+                    if(theClass.getDeclaredField(key).isAnnotationPresent(SQLNotSelect.class)) continue;
+                    Object value = res.getObject(i);
+                    ObjectHelper.setter(object, key, value);
+                } catch (Exception ignored) {}
+            }
+            results.add(object);
+        }
+
         return results;
-    }
-
-    public List<Object> findAll(Class theClass, HashMap params){
-        String sql = QueryHelper.CreateSelectFINDALL(theClass,params);
-        PreparedStatement pstm = null;
-        List<Object> results = new ArrayList<>();
-        try{
-            pstm = conn.prepareStatement(sql);
-            ResultSet res = pstm.executeQuery();
-            int columns = res.getMetaData().getColumnCount();
-
-            while (res.next()) {
-                List<Object> row = new ArrayList<>();
-                for (int i = 1; i <= columns; i++) {
-                    row.add(res.getObject(i)); // Fetch column value dynamically
-                }
-                results.add(row); // Add the row to the results list
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException(ex);
-        }
-        return results;
-    }
-
-    public List<Object> query(String query,Class theClass, HashMap params){
-        return null;
     }
 
 }

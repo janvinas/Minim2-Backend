@@ -2,10 +2,10 @@ package edu.upc.dsa.util;
 
 import edu.upc.dsa.DB.SQLNotInsert;
 
-import java.lang.reflect.Field;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.StringJoiner;
 
 public class QueryHelper {
 
@@ -38,7 +38,7 @@ public class QueryHelper {
 
     }
 
-    public static <T> String CreateQuerySELECT(Class<T> entity){
+    public static <T> String CreateQuerySELECTbyId(Class<T> entity){
 
         StringBuffer sb = new StringBuffer("SELECT * FROM ");
         sb.append(entity.getSimpleName()).append(" WHERE ID=?;");
@@ -47,33 +47,38 @@ public class QueryHelper {
 
     }
 
-    public static <T> String CreateSelectAll(Class<T> entity){
-        StringBuffer sb = new StringBuffer("SELECT * FROM ");
-        sb.append(entity.getSimpleName()).append(";");
-        return sb.toString();
-    }
+    public static <T> String CreateQuerySELECTbyParams(Class<T> theClass, Map<String,Object> params){
 
-    public static String CreateSelectFINDALL(Class theClass, HashMap<String,String> params){
-
-        Set<Map.Entry<String, String>> set = params.entrySet();
-
-        StringBuffer sb = new StringBuffer("SELECT * FROM "+theClass.getSimpleName()+" WHERE 1=1");
-        for (String key: params.keySet()) {
-            sb.append(" AND "+key+"=?");
+        StringBuilder sb = new StringBuilder("SELECT * FROM ").append(theClass.getSimpleName());
+        if(params == null) return sb.append(";").toString();
+        sb.append(" WHERE true");
+        for (String key : params.keySet()) {
+            sb.append(" AND ").append(key).append("=?");
         }
-
+        sb.append(";");
         return sb.toString();
     }
 
-    public static String CreateUpdate(Object entity){
-        StringBuffer sb = new StringBuffer("UPDATE ");
-        sb.append(entity.getClass().getSimpleName()).append(" SET username=?,password=? WHERE ID=?;");
+    public static <T> String CreateUpdate(Class<T> theClass, Map<String, Object> changes, Map<String, Object> selectors){
+        StringBuilder sb = new StringBuilder("UPDATE ");
+        sb.append(theClass.getSimpleName()).append(" SET ");
+        StringJoiner joiner = new StringJoiner(", ");
+        changes.forEach((key, val) -> joiner.add(key + "=?"));
+        sb.append(joiner).append(" WHERE true ");
+        selectors.forEach((key, val) -> sb.append("AND ").append(key).append("=? "));
+        sb.append(";");
         return sb.toString();
     }
 
-    public static String CreateDelete(Object entity){
+    public static <T> String CreateQueryDELETEbyParams(Class<T> theClass, Map<String,Object> params){
         StringBuffer sb = new StringBuffer("DELETE FROM ");
-        sb.append(entity.getClass().getSimpleName()).append(" WHERE ID=?;");
+        sb.append(theClass.getSimpleName());
+        if(params == null) return sb.append(";").toString();
+        sb.append(" WHERE true ");
+        for (String key : params.keySet()) {
+            sb.append(" AND ").append(key).append("=?");
+        }
+        sb.append(";");
         return sb.toString();
     }
 

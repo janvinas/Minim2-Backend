@@ -2,6 +2,8 @@ package edu.upc.dsa.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import edu.upc.dsa.DB.SQLNotInsert;
+import edu.upc.dsa.DB.SQLNotSelect;
 import edu.upc.dsa.util.RandomUtils;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -16,9 +18,11 @@ public class User {
     public String username; // acts as unique identifier
     public String password;
     public String mail;
+    @SQLNotInsert
     public double money;
+    @SQLNotInsert
     public int puntos;
-    @JsonIgnore
+    @JsonIgnore @SQLNotSelect @SQLNotInsert
     public ArrayList<InventoryObject> myObjects;
 
     public User(){

@@ -1,17 +1,20 @@
 package edu.upc.dsa.orm;
 
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface Session {
 
-    void save(Object entity);
+    void save(Object entity) throws SQLException;
     void close();
-    Object get(Class theClass, Object ID);
-    void update(Object object,String username, String password, int ID);
-    void delete(Object object);
-    <T> List<Object> findAll(Class<T> theClass);
-    List<Object> findAll(Class theClasse, HashMap params);
-    List<Object> query(String query, Class theClass, HashMap params);
+    <T> T get(Class<T> theClass, int ID) throws SQLException;
+    <T> void update(Class<T> theClass, Map<String, Object> changes, Map<String, Object> selectors) throws SQLException;
+    <T> void delete(Class<T> theClass, int id) throws SQLException;
+    <T> void delete(Class<T> theClass, Map<String, Object> params) throws SQLException;
+    <T> List<T> findAll(Class<T> theClass) throws SQLException;
+    <T> List<T> findAll(Class<T> theClass, Map<String, Object> params) throws SQLException;
 
 }
