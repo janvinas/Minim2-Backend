@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface Session {
 
-    void save(Object entity) throws SQLException;
+    <T> T save(T entity) throws SQLException;
     void close();
     <T> T get(Class<T> theClass, int ID) throws SQLException;
     <T> void update(Class<T> theClass, Map<String, Object> changes, Map<String, Object> selectors) throws SQLException;

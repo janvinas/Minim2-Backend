@@ -24,7 +24,7 @@ public class DBTest {
     @Test
     public void queryTest() throws Exception {
         User user = new User("a","a","a@a.com");
-        session.save(user);
+        Assert.assertEquals("a", session.save(user).getUsername());
         logger.debug(session.findAll(User.class, Map.of("username", "a")));
         Assert.assertEquals("a@a.com", session.findAll(User.class, Map.of("username", "a")).get(0).getMail());
 

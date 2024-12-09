@@ -1,93 +1,203 @@
 package edu.upc.dsa.dao;
 
-
 import edu.upc.dsa.Manager;
+import edu.upc.dsa.exceptions.*;
+import edu.upc.dsa.models.InventoryObject;
+import edu.upc.dsa.models.StoreObject;
 import edu.upc.dsa.models.User;
+import edu.upc.dsa.models.UserToken;
 import edu.upc.dsa.orm.FactorySession;
 import edu.upc.dsa.orm.Session;
+import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class DAO implements UserDAO {
+public class DAO implements Manager {
+    private static final Manager instance = new DAO();
+    final static Logger logger = Logger.getLogger(DAO.class);
 
-    public User addUser(User user) {
-        return addUser(user.getUsername(), user.getPassword(), user.getMail());
+    private final Session session;
+
+    private DAO(){
+        session = FactorySession.openSession();
     }
 
-    public User addUser(String username, String password, String mail){
-        Session session = null;
-        User user;
-        try {
-            session = FactorySession.openSession();
-            user = new User(username,password,mail);
-            session.save(user);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        finally {
-            session.close();
-        }
-        return user;
+    public static Manager getInstance(){
+        return instance;
     }
 
-    public User getUser(int UserID){
-        Session session = null;
-        User user = null;
+    @Override
+    public User addUser(User t) {
         try{
-            session = FactorySession.openSession();
-            user =(User) session.get(User.class, UserID);
-            return user;
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
-        finally {
-            session.close();
-        }
-    }
-
-    public void updateUser(int UserID, String username, String password){
-        Session session = null;
-        User user = null;
-        try{
-            session = FactorySession.openSession();
-            user = (User) session.get(User.class, UserID);
-            //session.update(user,username,password,UserID);
-        }catch(SQLException e){
-            throw new RuntimeException(e);
-        }
-        finally{
-            session.close();
-        }
-    }
-
-    public void deleteUser(int userID) {
-        Session session = null;
-        try{
-            session = FactorySession.openSession();
-            session.delete(User.class, userID);
-        }
-        catch(SQLException  e){
-            e.printStackTrace();
-        }
-        finally{
-            session.close();
-        }
-    }
-
-    public List<User> getUsers() {
-        Session session = null;
-        List<User> users = null;
-        try {
-            session = FactorySession.openSession();
-            //users = session.findAll(User.class);
+            return session.save(t);
+        }catch(SQLException e) {
+            logger.error(e);
             return null;
-        }catch(RuntimeException e){
-            throw new RuntimeException(e);
         }
-        finally {
-            session.close();
+    }
+
+    @Override
+    public User addUser(String username, String password, String email) {
+        return addUser(new User(username, password, email));
+    }
+
+    @Override
+    public User getUser(String username) throws UserNotFoundException {
+        try {
+            User u = session.findAll(User.class, Map.of("username", username)).get(0);
+            if(u == null) throw new UserNotFoundException();
+            return u;
+        } catch (SQLException e) {
+            throw new UserNotFoundException();
         }
+    }
+
+    @Override
+    public User getMail(String mail) throws MailNotFoundException {
+        try {
+            User u = session.findAll(User.class, Map.of("mail", mail)).get(0);
+            if(u == null) throw new MailNotFoundException();
+            return u;
+        } catch (SQLException e) {
+            throw new MailNotFoundException();
+        }
+    }
+
+    @Override
+    public void addPuntos(String username, int puntos) throws UserNotFoundException {
+        try{
+            User u = session.findAll(User.class, Map.of("username", username)).get(0);
+            if(u == null) throw new UserNotFoundException();
+            session.update(User.class, Map.of("puntos", u.getPuntos() + puntos), Map.of("username", username));
+        }catch(SQLException e) {
+            throw new UserNotFoundException();
+        }
+    }
+
+    @Override
+    public StoreObject addToStore(StoreObject object) {
+        try{
+            return session.save(object);
+        }catch(SQLException e) {
+            logger.error(e);
+            return null;
+        }
+    }
+
+    @Override
+    public StoreObject addToStore(String name, double price, String URL) {
+        return addToStore(new StoreObject(name, price, URL));
+    }
+
+    @Override
+    public StoreObject getObject(String name) throws ObjectNotFoundException {
+        try{
+            StoreObject o = session.findAll(StoreObject.class, Map.of("name", name)).get(0);
+            if(o == null) throw new ObjectNotFoundException();
+            return o;
+        }catch(SQLException e) {
+            throw new ObjectNotFoundException();
+        }
+    }
+
+    @Override
+    public void buyObject(String username, String objectName, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException {
+        try{
+            User u = session.findAll(User.class, Map.of("username", username)).get(0);
+            if(u == null) throw new UserNotFoundException();
+            StoreObject o = session.findAll(StoreObject.class, Map.of("name", objectName)).get(0);
+            if(o == null) throw new ObjectNotFoundException();
+
+        }catch(SQLException e){
+            throw new UserNotFoundException();
+        }
+    }
+
+    @Override
+    public boolean register(String username, String password, String mail) {
+        return false;
+    }
+
+    @Override
+    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException {
+        return null;
+    }
+
+    @Override
+    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException {
+        return null;
+    }
+
+    @Override
+    public List<User> findAllUsers() {
+        return List.of();
+    }
+
+    @Override
+    public void deleteUser(String username) {
+
+    }
+
+    @Override
+    public User updateUser1(User t, String username) {
+        return null;
+    }
+
+    @Override
+    public User updateUser2(User t, String password) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<InventoryObject> getUserObjects(String username) throws UserNotFoundException {
+        return null;
+    }
+
+    @Override
+    public List<StoreObject> findAllObjects() {
+        return List.of();
+    }
+
+    @Override
+    public UserToken generateToken(String username) {
+        return null;
+    }
+
+    @Override
+    public boolean validateToken(String username, String token) {
+        return false;
+    }
+
+    @Override
+    public void deleteToken(String username) {
+
+    }
+
+    @Override
+    public void clear() {
+
+    }
+
+    @Override
+    public void clearUsers() {
+
+    }
+
+    @Override
+    public void clearObjects() {
+
+    }
+
+    @Override
+    public int sizeUsers() {
+        return 0;
+    }
+
+    @Override
+    public int sizeObjects() {
+        return 0;
     }
 }
