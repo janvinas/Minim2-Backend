@@ -52,9 +52,6 @@ public interface Manager {
     void deleteToken(String username);
 
     //Clear and Size of lists used (Users & StoreObjects)
-    void clear();
-    void clearUsers();
-    void clearObjects();
     int sizeUsers();
     int sizeObjects();
 }

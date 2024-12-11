@@ -14,10 +14,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class DAO implements Manager {
     private static final Manager instance = new DAO();
     final static Logger logger = Logger.getLogger(DAO.class);
+    protected TreeMap<String, UserToken> tokens;
 
     private final Session session;
 
@@ -163,32 +165,23 @@ public class DAO implements Manager {
 
     @Override
     public UserToken generateToken(String username) {
-        return null;
+        UserToken token = new UserToken();
+        tokens.put(username,token);
+        return token;
     }
 
     @Override
     public boolean validateToken(String username, String token) {
-        return false;
+        if(token == null) return false;
+        UserToken Usertoken = tokens.get(username);
+        if(Usertoken == null) return false;
+        if(!Usertoken.getToken().equals(token)) return false;
+        return !Usertoken.hasExpired();
     }
 
     @Override
     public void deleteToken(String username) {
-
-    }
-
-    @Override
-    public void clear() {
-
-    }
-
-    @Override
-    public void clearUsers() {
-
-    }
-
-    @Override
-    public void clearObjects() {
-
+        tokens.remove(username);
     }
 
     @Override
