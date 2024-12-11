@@ -16,23 +16,28 @@ public class QueryHelper {
 
         String[] fields = ObjectHelper.getFields(entity);
 
-        sb.append("ID");
-
+        StringJoiner sj = new StringJoiner(", ");
         for(String field: fields){
             try {
-                if(!field.equals("ID") && !entity.getClass().getDeclaredField(field).isAnnotationPresent(SQLNotInsert.class)) sb.append(", ").append(field);
+                if(!entity.getClass().getDeclaredField(field).isAnnotationPresent(SQLNotInsert.class)) {
+                    sj.add(field);
+                }
             } catch (NoSuchFieldException ignored) { }
         }
+        sb.append(sj);
 
-        sb.append(") VALUES (0");
+        sb.append(") VALUES (");
 
+        sj = new StringJoiner(", ");
         for (String field: fields) {
 
             try {
-                if (!field.equals("ID") && !entity.getClass().getDeclaredField(field).isAnnotationPresent(SQLNotInsert.class))  sb.append(", ?");
+                if (!entity.getClass().getDeclaredField(field).isAnnotationPresent(SQLNotInsert.class)) {
+                    sj.add("?");
+                }
             } catch (NoSuchFieldException ignored) {}
         }
-        sb.append(")");
+        sb.append(sj).append(") RETURNING ID;");
 
         return sb.toString();
 

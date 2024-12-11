@@ -1,5 +1,8 @@
 package edu.upc.dsa.orm;
 
+import edu.upc.dsa.Manager;
+import edu.upc.dsa.dao.DAO;
+import edu.upc.dsa.models.StoreObject;
 import edu.upc.dsa.models.User;
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -15,10 +18,13 @@ import java.util.Map;
 public class DBTest {
     final static Logger logger = Logger.getLogger(DBTest.class);
     Session session;
+    Manager manager;
 
     @Before
     public void setUp() throws Exception {
         session = FactorySession.openSession();
+        manager = DAO.getInstance();
+        manager.deleteUser("a");    // delete user in case it exists
     }
 
     @Test
@@ -34,6 +40,25 @@ public class DBTest {
 
         session.delete(User.class, Map.of("username", "a"));
         Assert.assertEquals(0, session.findAll(User.class, Map.of("username", "a")).size());
+
+    }
+
+    @Test
+    public void shopTest() throws Exception {
+        User u = manager.register("a", "a", "a@a.com");
+        StoreObject o = manager.addToStore("plàtan", 3, "images/platan.png");
+        manager.buyObject(u.getID(), o.getID(), 1);
+        Assert.assertEquals(47, manager.getUserByID(u.getID()).getMoney(), 0.0001);
+
+        manager.deleteUser("a");
+    }
+
+    @Test
+    public void userTest() throws Exception {
+        User u = manager.register("a", "a", "a@a.com");
+        manager.addPuntos(u.getID(), 5);
+        Assert.assertEquals(5, manager.getUserByID(u.getID()).getPuntos());
+        manager.deleteUser("a");
 
     }
 

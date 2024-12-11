@@ -16,6 +16,7 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.sql.SQLException;
 import java.util.List;
 
 @Api("/shop")
@@ -24,50 +25,45 @@ public class ShopService {
     private final Manager manager = ManagerImpl.getInstance();
 
     public ShopService() {
-        if(manager.sizeObjects() == 0) {
-            manager.addToStore("Poció màgica", 15, "/images/pocion.jpg");
-            manager.addToStore("Plàtan", 1, "/images/platano.jpg");
-            manager.addToStore("Pell de plàtan", 0.3, "/images/piel.jpg");
-            try {
-                manager.buyObject("jan", "Plàtan", 4);
-                manager.buyObject("jan", "Pell de plàtan", 14);
-            } catch (UserNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     @GET
     @Path("/listObjects")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Success", response = StoreObject.class, responseContainer = "List")
+            @ApiResponse(code = 200, message = "Success", response = StoreObject.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")
     })
     @Produces(MediaType.APPLICATION_JSON)
     public Response getItems(){
-        GenericEntity<List<StoreObject>> entity = new GenericEntity<List<StoreObject>>(manager.findAllObjects()) {};
-        return Response.ok(entity).build();
+        try{
+            GenericEntity<List<StoreObject>> entity = new GenericEntity<List<StoreObject>>(manager.findAllObjects()) {};
+            return Response.ok(entity).build();
+        }catch(SQLException e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 
 
     @POST
-    @Path("/buy/{object}/{username}/{quantity}")
+    @Path("/buy/{objectID}/{userID}/{quantity}")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Success"),
             @ApiResponse(code = 403, message = "Incorrect credentials"),
             @ApiResponse(code = 404, message = "Object not found"),
-            @ApiResponse(code = 402, message = "Not enough money")
-
+            @ApiResponse(code = 402, message = "Not enough money"),
+            @ApiResponse(code = 500, message = "Internal server error")
     })
-    public Response buyObject(@PathParam("object") String object,
-                              @PathParam("username") String username,
+    public Response buyObject(@PathParam("objectID") String objectID,
+                              @PathParam("userID") String userID,
                               @PathParam("quantity") int quantity,
                               @CookieParam("token") Cookie token) {
-        if(token == null || !manager.validateToken(username, token.getValue())){
+        if(token == null || !manager.validateToken(userID, token.getValue())){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         try{
-            manager.buyObject(username, object, quantity);
+            manager.buyObject(userID, objectID, quantity);
         }catch (ObjectNotFoundException e){
             return Response
                     .status(Response.Status.NOT_FOUND)
@@ -81,6 +77,8 @@ public class ShopService {
             return Response
                     .status(Response.Status.PAYMENT_REQUIRED)
                     .build();
+        }catch(SQLException e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
         return Response.ok().build();
@@ -94,16 +92,18 @@ public class ShopService {
             @ApiResponse(code = 403, message = "Incorrect credentials")
     })
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getMoney(@PathParam("username") String username, @CookieParam("token") Cookie token){
-        if(token == null || !manager.validateToken(username, token.getValue())){
+    public Response getMoney(@PathParam("username") String userID, @CookieParam("token") Cookie token){
+        if(token == null || !manager.validateToken(userID, token.getValue())){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         try{
-            GenericEntity<Double> entity = new GenericEntity<Double>(manager.getUser(username).getMoney()) {};
+            GenericEntity<Double> entity = new GenericEntity<Double>(manager.getUserByID(userID).getMoney()) {};
             return Response.ok(entity).build();
         }catch(UserNotFoundException ignored){
             return Response.status(Response.Status.BAD_REQUEST).build();
+        }catch(SQLException ignored){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
     }

@@ -1,25 +1,31 @@
 package edu.upc.dsa.models;
 
 public class Inventory {
-    int userID;
-    int objectID;
+    String userID;
+    String objectID;
     int quantity;
+
+    public Inventory(String userID, String objectID, int quantity) {
+        this.userID = userID;
+        this.objectID = objectID;
+        this.quantity = quantity;
+    }
 
     public Inventory() {}
 
-    public int getUserID() {
+    public String getUserID() {
         return userID;
     }
 
-    public void setUserID(int userID) {
+    public void setUserID(String userID) {
         this.userID = userID;
     }
 
-    public int getObjectID() {
+    public String getObjectID() {
         return objectID;
     }
 
-    public void setObjectID(int objectID) {
+    public void setObjectID(String objectID) {
         this.objectID = objectID;
     }
 

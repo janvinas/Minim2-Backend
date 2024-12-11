@@ -31,7 +31,7 @@ public class DAO_old {
         return user;
     }
 
-    public User getUser(int UserID){
+    public User getUser(String UserID){
         Session session = null;
         User user = null;
         try{
@@ -46,7 +46,7 @@ public class DAO_old {
         }
     }
 
-    public void updateUser(int UserID, String username, String password){
+    public void updateUser(String UserID, String username, String password){
         Session session = null;
         User user = null;
         try{
@@ -61,7 +61,7 @@ public class DAO_old {
         }
     }
 
-    public void deleteUser(int userID) {
+    public void deleteUser(String userID) {
         Session session = null;
         try{
             session = FactorySession.openSession();

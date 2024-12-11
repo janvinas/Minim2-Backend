@@ -1,50 +1,50 @@
 package edu.upc.dsa;
 
 import edu.upc.dsa.exceptions.*;
-import edu.upc.dsa.models.InventoryObject;
-import edu.upc.dsa.models.StoreObject;
-import edu.upc.dsa.models.User;
-import edu.upc.dsa.models.UserToken;
+import edu.upc.dsa.models.*;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface Manager {
 
     //User related
-    User addUser(User t);
-    User addUser(String username, String password, String email);
-    User getUser(String username) throws UserNotFoundException;
-    User getMail (String mail) throws MailNotFoundException;
+    User addUser(User t) throws SQLException;
+    User addUser(String username, String password, String email) throws SQLException;
+    User getUser(String username) throws UserNotFoundException, SQLException;
+    User getUserByID(String userID) throws UserNotFoundException, SQLException;
+    User getMail (String mail) throws MailNotFoundException, SQLException;
 
-    void addPuntos(String username, int puntos) throws UserNotFoundException;
+    void addPuntos(String userID, int puntos) throws UserNotFoundException, SQLException;
 
 
 
     //Store related
-    StoreObject addToStore(StoreObject object);
-    StoreObject addToStore(String name, double price, String URL);
-    StoreObject getObject(String name) throws ObjectNotFoundException;
+    StoreObject addToStore(StoreObject object) throws SQLException;
+    StoreObject addToStore(String name, double price, String URL) throws SQLException;
+    StoreObject getObject(String name) throws ObjectNotFoundException, SQLException;
 
-    void buyObject(String username, String objectName, int quantity)
-            throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException;
+    void buyObject(String userID, String objectID, int quantity)
+            throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException, SQLException;
 
     //Register
-    boolean register(String username, String password, String mail);
+    User register(String username, String password, String mail) throws SQLException;
 
     //Login through username and through mail
-    User login1(String username, String password) throws UserNotFoundException, WrongPasswordException;
-    User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException;
+    User login1(String username, String password) throws UserNotFoundException, WrongPasswordException, SQLException;
+    User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException, SQLException;
+    User login3(String userID, String password) throws UserNotFoundException, WrongPasswordException, SQLException;
 
     //List of Users
-    List<User> findAllUsers();
-    void deleteUser(String username);
-    User updateUser1(User t, String username);
-    User updateUser2(User t, String password);
+    List<User> findAllUsers() throws SQLException;
+    void deleteUser(String username) throws SQLException;
+    User updateUser1(User t, String username) throws SQLException;
+    User updateUser2(User t, String password) throws SQLException;
 
     //Get the Objects of a User and the Store
-    ArrayList<InventoryObject> getUserObjects(String username) throws UserNotFoundException;
-    List<StoreObject> findAllObjects();
+    List<Inventory> getUserObjects(String userID) throws UserNotFoundException, SQLException;
+    List<StoreObject> findAllObjects() throws SQLException;
 
     //Token related
     UserToken generateToken(String username);

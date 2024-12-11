@@ -3,18 +3,16 @@ package edu.upc.dsa;
 import edu.upc.dsa.exceptions.*;
 import edu.upc.dsa.models.*;
 
-import java.lang.reflect.Array;
-import java.security.DomainLoadStoreParameter;
+import java.sql.SQLException;
 import java.util.*;
 
 import org.apache.log4j.Logger;
-
-import javax.management.modelmbean.InvalidTargetObjectTypeException;
 
 public class ManagerImpl implements Manager {
     private static Manager instance;
     protected List<User> users;
     protected List<StoreObject> objects;
+    protected List<Inventory> inventory;
     protected TreeMap<String, UserToken> tokens;
     protected Store store;
 
@@ -23,6 +21,7 @@ public class ManagerImpl implements Manager {
     private ManagerImpl() {
         this.users = new LinkedList<>();
         this.objects = new LinkedList<>();
+        this.inventory = new ArrayList<>();
         this.tokens = new TreeMap<>();
     }
 
@@ -55,7 +54,18 @@ public class ManagerImpl implements Manager {
         throw new UserNotFoundException();
     }
 
-    public User getMail(String mail) throws MailNotFoundException{
+    public User getUserByID(String userID) throws UserNotFoundException, SQLException{
+        for (User u:users){
+            if(u.getID().equals(userID)){
+                logger.info("Returning User: "+u);
+                return u;
+            }
+        }
+        logger.warn("User not found");
+        throw new UserNotFoundException();
+    }
+
+    public User getMail(String mail) throws MailNotFoundException, SQLException {
         for(User u:users){
             if(u.getMail().equals(mail)){
                 logger.info("Returning User: "+u);
@@ -65,9 +75,9 @@ public class ManagerImpl implements Manager {
         logger.warn("Mail not found");
         throw new MailNotFoundException();
     }
-    public void addPuntos(String username, int puntos) throws UserNotFoundException {
+    public void addPuntos(String userID, int puntos) throws UserNotFoundException, SQLException {
         logger.info("Adding points: "+puntos);
-        this.getUser(username).puntos ++;
+        this.getUserByID(userID).incrementarPuntos(puntos);
         logger.info("Points added");
     }
 
@@ -120,14 +130,13 @@ public class ManagerImpl implements Manager {
 
     //Register
 
-    public boolean register(String username, String password, String mail){
+    public User register(String username, String password, String mail){
         try{
             getUser(username);
-            return false;
+            return null;
         }catch(UserNotFoundException e){
             logger.info("Adding user with credentials: Username="+username+", Password="+password+", Mail:"+mail);
-            addUser(username,password,mail);
-            return true;
+            return addUser(username,password,mail);
 
         }
     }
@@ -144,13 +153,18 @@ public class ManagerImpl implements Manager {
         }
     }
 
-    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException{
+    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException, SQLException{
         User u = getUser(username);
         return login(u, password);
     }
 
-    public User login2(String mail, String password) throws MailNotFoundException, WrongPasswordException{
+    public User login2(String mail, String password) throws MailNotFoundException, WrongPasswordException, SQLException{
         User u = getMail(mail);
+        return login(u, password);
+    }
+
+    public User login3(String userID, String password) throws UserNotFoundException, WrongPasswordException, SQLException{
+        User u = getUserByID(userID);
         return login(u, password);
     }
 
@@ -194,9 +208,8 @@ public class ManagerImpl implements Manager {
 
     //Get list of objects of a User and the Store
 
-    public ArrayList<InventoryObject> getUserObjects(String username) throws UserNotFoundException{
-        User u = getUser(username);
-        return u.getMyObjects();
+    public List<Inventory> getUserObjects(String userID) throws UserNotFoundException, SQLException{
+        return inventory.stream().filter(inventory -> inventory.getUserID().equals(userID)).toList();
     }
 
     public List<StoreObject> findAllObjects(){

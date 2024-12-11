@@ -2,12 +2,10 @@ package edu.upc.dsa.dao;
 
 import edu.upc.dsa.Manager;
 import edu.upc.dsa.exceptions.*;
-import edu.upc.dsa.models.InventoryObject;
-import edu.upc.dsa.models.StoreObject;
-import edu.upc.dsa.models.User;
-import edu.upc.dsa.models.UserToken;
+import edu.upc.dsa.models.*;
 import edu.upc.dsa.orm.FactorySession;
 import edu.upc.dsa.orm.Session;
+import edu.upc.dsa.services.UsersService;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
@@ -30,105 +28,105 @@ public class DAO implements Manager {
     }
 
     @Override
-    public User addUser(User t) {
-        try{
-            return session.save(t);
-        }catch(SQLException e) {
-            logger.error(e);
-            return null;
-        }
+    public User addUser(User t) throws SQLException {
+        return session.save(t);
     }
 
     @Override
-    public User addUser(String username, String password, String email) {
+    public User addUser(String username, String password, String email) throws SQLException {
         return addUser(new User(username, password, email));
     }
 
     @Override
-    public User getUser(String username) throws UserNotFoundException {
-        try {
-            User u = session.findAll(User.class, Map.of("username", username)).get(0);
-            if(u == null) throw new UserNotFoundException();
-            return u;
-        } catch (SQLException e) {
-            throw new UserNotFoundException();
-        }
+    public User getUser(String username) throws UserNotFoundException, SQLException {
+        User u = session.findAll(User.class, Map.of("username", username)).get(0);
+        if(u == null) throw new UserNotFoundException();
+        return u;
     }
 
     @Override
-    public User getMail(String mail) throws MailNotFoundException {
-        try {
-            User u = session.findAll(User.class, Map.of("mail", mail)).get(0);
-            if(u == null) throw new MailNotFoundException();
-            return u;
-        } catch (SQLException e) {
-            throw new MailNotFoundException();
-        }
+    public User getUserByID(String userID) throws UserNotFoundException, SQLException {
+        User u = session.findAll(User.class, Map.of("ID", userID)).get(0);
+        if(u == null) throw new UserNotFoundException();
+        return u;
     }
 
     @Override
-    public void addPuntos(String username, int puntos) throws UserNotFoundException {
-        try{
-            User u = session.findAll(User.class, Map.of("username", username)).get(0);
-            if(u == null) throw new UserNotFoundException();
-            session.update(User.class, Map.of("puntos", u.getPuntos() + puntos), Map.of("username", username));
-        }catch(SQLException e) {
-            throw new UserNotFoundException();
-        }
+    public User getMail(String mail) throws MailNotFoundException, SQLException {
+        User u = session.findAll(User.class, Map.of("mail", mail)).get(0);
+        if(u == null) throw new MailNotFoundException();
+        return u;
     }
 
     @Override
-    public StoreObject addToStore(StoreObject object) {
-        try{
-            return session.save(object);
-        }catch(SQLException e) {
-            logger.error(e);
-            return null;
-        }
+    public void addPuntos(String userID, int puntos) throws UserNotFoundException, SQLException {
+        User u = session.findAll(User.class, Map.of("ID", userID)).get(0);
+        if(u == null) throw new UserNotFoundException();
+        session.update(User.class, Map.of("puntos", u.getPuntos() + puntos), Map.of("ID", userID));
     }
 
     @Override
-    public StoreObject addToStore(String name, double price, String URL) {
+    public StoreObject addToStore(StoreObject object) throws SQLException{
+        return session.save(object);
+    }
+
+    @Override
+    public StoreObject addToStore(String name, double price, String URL) throws SQLException {
         return addToStore(new StoreObject(name, price, URL));
     }
 
     @Override
-    public StoreObject getObject(String name) throws ObjectNotFoundException {
-        try{
-            StoreObject o = session.findAll(StoreObject.class, Map.of("name", name)).get(0);
-            if(o == null) throw new ObjectNotFoundException();
-            return o;
-        }catch(SQLException e) {
-            throw new ObjectNotFoundException();
+    public StoreObject getObject(String name) throws ObjectNotFoundException, SQLException {
+        StoreObject o = session.findAll(StoreObject.class, Map.of("name", name)).get(0);
+        if(o == null) throw new ObjectNotFoundException();
+        return o;
+    }
+
+    @Override
+    public void buyObject(String userID, String objectID, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException, SQLException {
+        User u = session.findAll(User.class, Map.of("ID", userID)).get(0);
+        if(u == null) throw new UserNotFoundException();
+        StoreObject o = session.findAll(StoreObject.class, Map.of("ID", objectID)).get(0);
+        if(o == null) throw new ObjectNotFoundException();
+        if(u.getMoney() < o.getPrice()*quantity) throw new NotEnoughMoneyException("Not enough money");
+
+        List<Inventory> inventory = session.findAll(Inventory.class, Map.of("UserID", u.getID(), "ObjectID", o.getID()));
+        if(inventory.isEmpty()){
+            session.save(new Inventory(userID, objectID, quantity));
+        }else{
+            session.update(Inventory.class, Map.of("quantity", inventory.get(0).getQuantity() + quantity), Map.of("UserID", u.getID(), "ObjectID", o.getID()));
         }
+        session.update(User.class, Map.of("money", u.getMoney() - o.getPrice()*quantity), Map.of("ID", userID));
     }
 
     @Override
-    public void buyObject(String username, String objectName, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException {
-        try{
-            User u = session.findAll(User.class, Map.of("username", username)).get(0);
-            if(u == null) throw new UserNotFoundException();
-            StoreObject o = session.findAll(StoreObject.class, Map.of("name", objectName)).get(0);
-            if(o == null) throw new ObjectNotFoundException();
-
-        }catch(SQLException e){
-            throw new UserNotFoundException();
-        }
+    public User register(String username, String password, String mail) throws SQLException{
+        if(!session.findAll(User.class, Map.of("username", username)).isEmpty()) return null;  // user already exists
+        return session.save(new User(username, password, mail));
     }
 
     @Override
-    public boolean register(String username, String password, String mail) {
-        return false;
+    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException, SQLException {
+        User u = getUser(username);
+        if(u == null) throw new UserNotFoundException();
+        if(u.getPassword().equals(password)) return u;
+        throw new WrongPasswordException();
     }
 
     @Override
-    public User login1(String username, String password) throws UserNotFoundException, WrongPasswordException {
-        return null;
+    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException, SQLException {
+        User u = getMail(mail);
+        if(u == null) throw new UserNotFoundException();
+        if(u.getPassword().equals(password)) return u;
+        throw new WrongPasswordException();
     }
 
     @Override
-    public User login2(String mail, String password) throws UserNotFoundException, WrongPasswordException {
-        return null;
+    public User login3(String userID, String password) throws UserNotFoundException, WrongPasswordException, SQLException {
+        User u = getUserByID(userID);
+        if(u == null) throw new UserNotFoundException();
+        if(u.getPassword().equals(password)) return u;
+        throw new WrongPasswordException();
     }
 
     @Override
@@ -137,8 +135,8 @@ public class DAO implements Manager {
     }
 
     @Override
-    public void deleteUser(String username) {
-
+    public void deleteUser(String username) throws SQLException {
+        session.delete(User.class, Map.of("username", username));
     }
 
     @Override
@@ -152,13 +150,13 @@ public class DAO implements Manager {
     }
 
     @Override
-    public ArrayList<InventoryObject> getUserObjects(String username) throws UserNotFoundException {
-        return null;
+    public List<Inventory> getUserObjects(String userID) throws UserNotFoundException, SQLException {
+        return session.findAll(Inventory.class, Map.of("userID", userID));
     }
 
     @Override
-    public List<StoreObject> findAllObjects() {
-        return List.of();
+    public List<StoreObject> findAllObjects() throws SQLException{
+        return session.findAll(StoreObject.class);
     }
 
     @Override
@@ -175,7 +173,6 @@ public class DAO implements Manager {
     public void deleteToken(String username) {
 
     }
-
     @Override
     public void clear() {
 

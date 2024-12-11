@@ -1,7 +1,11 @@
 package edu.upc.dsa.models;
 
+import edu.upc.dsa.DB.SQLNotInsert;
+
 public class StoreObject {
 
+    @SQLNotInsert
+    public String ID;
     public String name;
     public double price;
     public String URL;
@@ -16,6 +20,14 @@ public class StoreObject {
 
     public StoreObject() {
 
+    }
+
+    public String getID() {
+        return ID;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
     }
 
     public StoreObject(String Name, double Price, String URL){

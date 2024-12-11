@@ -12,9 +12,12 @@ import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class User {
 
+    @SQLNotInsert
+    public String ID;
     public String username; // acts as unique identifier
     public String password;
     public String mail;
@@ -31,7 +34,13 @@ public class User {
         this.puntos=0;
     }
 
+    public String getID() {
+        return ID;
+    }
 
+    public void setID(String ID) {
+        this.ID = ID;
+    }
 
     public User(String username, String password, String mail) {
         this();
@@ -46,6 +55,12 @@ public class User {
 
     public void setPuntos(int puntos) {
         this.puntos = puntos;
+    }
+
+    public int incrementarPuntos(int incremento){
+        if(incremento <= 0) return 0;
+        this.puntos += incremento;
+        return this.puntos;
     }
 
     public String getUsername() {
