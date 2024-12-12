@@ -46,11 +46,12 @@ public class DBTest {
     @Test
     public void shopTest() throws Exception {
         User u = manager.register("a", "a", "a@a.com");
-        StoreObject o = manager.addToStore("plàtan", 3, "images/platan.png");
+        StoreObject o = manager.addToStore("plàtan", 3, "images/platan.png", "descripció");
         manager.buyObject(u.getID(), o.getID(), 1);
         Assert.assertEquals(47, manager.getUserByID(u.getID()).getMoney(), 0.0001);
 
         manager.deleteUser("a");
+        session.delete(StoreObject.class, Map.of("ID", o.getID()));
     }
 
     @Test

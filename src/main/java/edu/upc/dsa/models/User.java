@@ -16,15 +16,12 @@ import java.util.UUID;
 
 public class User {
 
-    @SQLNotInsert
-    public String ID;
+    @SQLNotInsert public String ID;
     public String username; // acts as unique identifier
     public String password;
     public String mail;
-    @SQLNotInsert
-    public double money;
-    @SQLNotInsert
-    public int puntos;
+    @SQLNotInsert public double money;
+    @SQLNotInsert public int puntos;
     @JsonIgnore @SQLNotSelect @SQLNotInsert
     public ArrayList<InventoryObject> myObjects;
 

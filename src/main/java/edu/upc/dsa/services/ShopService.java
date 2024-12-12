@@ -3,6 +3,7 @@ package edu.upc.dsa.services;
 import com.google.common.annotations.GwtCompatible;
 import edu.upc.dsa.Manager;
 import edu.upc.dsa.ManagerImpl;
+import edu.upc.dsa.dao.DAO;
 import edu.upc.dsa.exceptions.NotEnoughMoneyException;
 import edu.upc.dsa.exceptions.ObjectNotFoundException;
 import edu.upc.dsa.exceptions.UserNotFoundException;
@@ -22,7 +23,7 @@ import java.util.List;
 @Api("/shop")
 @Path("/shop")
 public class ShopService {
-    private final Manager manager = ManagerImpl.getInstance();
+    private final Manager manager = DAO.getInstance();
 
     public ShopService() {
     }
@@ -86,19 +87,19 @@ public class ShopService {
 
 
     @GET
-    @Path("/money/{username}")
+    @Path("/money/{userID}")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Success", response = String.class),
             @ApiResponse(code = 403, message = "Incorrect credentials")
     })
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getMoney(@PathParam("username") String userID, @CookieParam("token") Cookie token){
+    public Response getMoney(@PathParam("userID") String userID, @CookieParam("token") Cookie token){
         if(token == null || !manager.validateToken(userID, token.getValue())){
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         try{
-            GenericEntity<Double> entity = new GenericEntity<Double>(manager.getUserByID(userID).getMoney()) {};
+            GenericEntity<Double> entity = new GenericEntity<>(manager.getUserByID(userID).getMoney()) {};
             return Response.ok(entity).build();
         }catch(UserNotFoundException ignored){
             return Response.status(Response.Status.BAD_REQUEST).build();

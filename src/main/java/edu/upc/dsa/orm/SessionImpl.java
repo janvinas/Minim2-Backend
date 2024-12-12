@@ -71,7 +71,7 @@ public class SessionImpl implements Session {
 
 
         int numColumns = rsmd.getColumnCount();
-        for (int i = 0; i < numColumns; i++) {
+        for (int i = 1; i <= numColumns; i++) {
             try {
                 String key = rsmd.getColumnName(i);
                 if(theClass.getDeclaredField(key).isAnnotationPresent(SQLNotSelect.class)) continue;
@@ -146,7 +146,7 @@ public class SessionImpl implements Session {
                 e.printStackTrace();
                 continue;
             }
-            for (int i = 0; i < numColumns; i++) {
+            for (int i = 1; i <= numColumns; i++) {
                 try {
                     String key = rsmd.getColumnName(i);
                     if(theClass.getDeclaredField(key).isAnnotationPresent(SQLNotSelect.class)) continue;

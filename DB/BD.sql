@@ -18,16 +18,21 @@ CREATE TABLE StoreObject(
 	ID VARCHAR(36) NOT NULL DEFAULT(uuid()),
 	name VARCHAR(255) NOT NULL,
 	price DOUBLE NOT NULL,
-	URL VARCHAR(255),
+    description VARCHAR(1024) NOT NULL,
+	url VARCHAR(255),
 	PRIMARY KEY(ID)
 );
+
+INSERT INTO StoreObject(name, price, url, description) VALUES ("Plàtan", 3, "images/platano.jpg", "descripció del plàtan");
+INSERT INTO StoreObject(name, price, url, description) VALUES ("Pell de plàtan", 1, "images/piel.jpg", "descripció de la pell de plàtan");
+INSERT INTO StoreObject(name, price, url, description) VALUES ("Poció màgica", 15, "images/pocion.jpg", "descripció de la poció");
 
 --INVENTORY TABLE OF ALL USERS
 CREATE TABLE Inventory(
     ID VARCHAR(36) NOT NULL DEFAULT(uuid()) PRIMARY KEY,
-	UserID VARCHAR(36),
-	ObjectID VARCHAR(36),
-	Quantity INTEGER NOT NULL,
+	userID VARCHAR(36),
+	objectID VARCHAR(36),
+	quantity INTEGER NOT NULL,
 	FOREIGN KEY (UserID) REFERENCES User(ID) ON DELETE CASCADE,
 	FOREIGN KEY (ObjectID) REFERENCES StoreObject(ID) ON DELETE CASCADE
 );
@@ -35,7 +40,7 @@ CREATE TABLE Inventory(
 --EXISTING LEVELS TABLE
 CREATE TABLE Nivel(
 	ID VARCHAR(36) NOT NULL DEFAULT(uuid()),
-	CreatorID VARCHAR(36) NOT NULL,
+	creatorID VARCHAR(36) NOT NULL,
 	name VARCHAR(255),
 	PRIMARY KEY (ID),
 	FOREIGN KEY (CreatorID) REFERENCES User(ID) ON DELETE CASCADE

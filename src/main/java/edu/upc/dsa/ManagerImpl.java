@@ -5,6 +5,7 @@ import edu.upc.dsa.models.*;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -90,8 +91,8 @@ public class ManagerImpl implements Manager {
         return object;
     }
 
-    public StoreObject addToStore(String name, double price, String URL){
-        StoreObject object = new StoreObject(name,price, URL);
+    public StoreObject addToStore(String name, double price, String URL, String description){
+        StoreObject object = new StoreObject(name,price, URL, description);
         return this.addToStore(object);
     }
 
@@ -209,7 +210,7 @@ public class ManagerImpl implements Manager {
     //Get list of objects of a User and the Store
 
     public List<Inventory> getUserObjects(String userID) throws UserNotFoundException, SQLException{
-        return inventory.stream().filter(inventory -> inventory.getUserID().equals(userID)).toList();
+        return inventory.stream().filter(inventory -> inventory.getUserID().equals(userID)).collect(Collectors.toList());
     }
 
     public List<StoreObject> findAllObjects(){

@@ -22,7 +22,7 @@ public interface Manager {
 
     //Store related
     StoreObject addToStore(StoreObject object) throws SQLException;
-    StoreObject addToStore(String name, double price, String URL) throws SQLException;
+    StoreObject addToStore(String name, double price, String URL, String description) throws SQLException;
     StoreObject getObject(String name) throws ObjectNotFoundException, SQLException;
 
     void buyObject(String userID, String objectID, int quantity)

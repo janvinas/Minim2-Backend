@@ -15,12 +15,13 @@ import java.util.TreeMap;
 public class DAO implements Manager {
     private static final Manager instance = new DAO();
     final static Logger logger = Logger.getLogger(DAO.class);
-    protected TreeMap<String, UserToken> tokens;
+    public TreeMap<String, UserToken> tokens;
 
     private final Session session;
 
     private DAO(){
         session = FactorySession.openSession();
+        tokens = new TreeMap<>();
     }
 
     public static Manager getInstance(){
@@ -39,9 +40,9 @@ public class DAO implements Manager {
 
     @Override
     public User getUser(String username) throws UserNotFoundException, SQLException {
-        User u = session.findAll(User.class, Map.of("username", username)).get(0);
-        if(u == null) throw new UserNotFoundException();
-        return u;
+        List<User> users = session.findAll(User.class, Map.of("username", username));
+        if(users.isEmpty()) throw new UserNotFoundException();
+        return users.get(0);
     }
 
     @Override
@@ -71,8 +72,8 @@ public class DAO implements Manager {
     }
 
     @Override
-    public StoreObject addToStore(String name, double price, String URL) throws SQLException {
-        return addToStore(new StoreObject(name, price, URL));
+    public StoreObject addToStore(String name, double price, String URL, String description) throws SQLException {
+        return addToStore(new StoreObject(name, price, URL, description));
     }
 
     @Override
@@ -130,8 +131,8 @@ public class DAO implements Manager {
     }
 
     @Override
-    public List<User> findAllUsers() {
-        return List.of();
+    public List<User> findAllUsers() throws SQLException{
+        return session.findAll(User.class);
     }
 
     @Override
@@ -140,13 +141,15 @@ public class DAO implements Manager {
     }
 
     @Override
-    public User updateUser1(User t, String username) {
-        return null;
+    public User updateUser1(User t, String username) throws SQLException{
+        session.update(User.class, Map.of("ID", t.getID()), Map.of("username", username));
+        return session.findAll(User.class, Map.of("ID", t.getID())).iterator().next();
     }
 
     @Override
-    public User updateUser2(User t, String password) {
-        return null;
+    public User updateUser2(User t, String password) throws SQLException{
+        session.update(User.class, Map.of("ID", t.getID()), Map.of("password", password));
+        return session.findAll(User.class, Map.of("ID", t.getID())).iterator().next();
     }
 
     @Override
@@ -160,24 +163,24 @@ public class DAO implements Manager {
     }
 
     @Override
-    public UserToken generateToken(String username) {
+    public UserToken generateToken(String userID) {
         UserToken token = new UserToken();
-        tokens.put(username,token);
+        tokens.put(userID, token);
         return token;
     }
 
     @Override
-    public boolean validateToken(String username, String token) {
+    public boolean validateToken(String userID, String token) {
         if(token == null) return false;
-        UserToken Usertoken = tokens.get(username);
+        UserToken Usertoken = tokens.get(userID);
         if(Usertoken == null) return false;
         if(!Usertoken.getToken().equals(token)) return false;
         return !Usertoken.hasExpired();
     }
 
     @Override
-    public void deleteToken(String username) {
-        tokens.remove(username);
+    public void deleteToken(String userID) {
+        tokens.remove(userID);
     }
 
     @Override

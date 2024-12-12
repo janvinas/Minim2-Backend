@@ -1,7 +1,7 @@
 package edu.upc.dsa.services;
 
 import edu.upc.dsa.Manager;
-import edu.upc.dsa.ManagerImpl;
+import edu.upc.dsa.dao.DAO;
 import edu.upc.dsa.exceptions.UserNotFoundException;
 import edu.upc.dsa.exceptions.WrongPasswordException;
 import edu.upc.dsa.models.*;
@@ -13,13 +13,13 @@ import io.swagger.annotations.ApiResponses;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List;
 
 @Api("/users")
 @Path("/users")
 public class UsersService {
 
-    Manager manager = ManagerImpl.getInstance();
+    Manager manager = DAO.getInstance();
 
     public UsersService()  {
     }
@@ -40,7 +40,7 @@ public class UsersService {
         User result;
         // only add the user if it doesn't exist
         try{
-            result = manager.getUser(user.getUsername());
+            manager.getUser(user.getUsername());
             return Response.status(Response.Status.CONFLICT).build();
         } catch (UserNotFoundException e) {
             try{
@@ -51,7 +51,7 @@ public class UsersService {
             }
 
             // creating a user also logs in
-            UserToken token = manager.generateToken(user.getUsername());
+            UserToken token = manager.generateToken(result.getID());
             NewCookie cookie = new NewCookie("token", token.getToken(), "/", null, null, UserToken.MAX_AGE, false);
             GenericEntity<User> entity = new GenericEntity<User>(result){};
             return Response
@@ -59,6 +59,8 @@ public class UsersService {
                     .cookie(cookie)
                     .entity(entity)
                     .build();
+
+
         }catch(SQLException e){
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -90,7 +92,7 @@ public class UsersService {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        UserToken token = manager.generateToken(user.getUsername());
+        UserToken token = manager.generateToken(user.getID());
         NewCookie cookie = new NewCookie("token", token.getToken(), "/", null, null, UserToken.MAX_AGE, false);
         GenericEntity<User> entity = new GenericEntity<User>(user){};
         return Response
@@ -104,7 +106,7 @@ public class UsersService {
     @ApiOperation("Gets objects from user")
     @Path("/getObjects/{userID}")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Success", response = InventoryObject.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "Success", response = Inventory.class, responseContainer = "List"),
             @ApiResponse(code = 403, message = "Forbidden"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")
@@ -116,7 +118,7 @@ public class UsersService {
         }
 
         try{
-            GenericEntity<ArrayList<InventoryObject>> entity = new GenericEntity<ArrayList<InventoryObject>>(manager.getUserObjects(userID)) {};
+            GenericEntity<List<Inventory>> entity = new GenericEntity<>(manager.getUserObjects(userID)) {};
             return Response
                     .status(Response.Status.OK)
                     .entity(entity)

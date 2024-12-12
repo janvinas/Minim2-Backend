@@ -7,19 +7,28 @@ public class StoreObject {
     @SQLNotInsert
     public String ID;
     public String name;
+    public String description;
     public double price;
-    public String URL;
-
-    public void setURL(String URL) {
-        this.URL = URL;
-    }
-
-    public String getURL() {
-        return URL;
-    }
+    public String url;
 
     public StoreObject() {
 
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getID() {
@@ -30,10 +39,11 @@ public class StoreObject {
         this.ID = ID;
     }
 
-    public StoreObject(String Name, double Price, String URL){
+    public StoreObject(String Name, double Price, String URL, String description){
         this.setName(Name);
         this.setPrice(Price);
-        this.setURL(URL);
+        this.setUrl(URL);
+        this.setDescription(description);
     }
 
     public String getName() {
@@ -54,7 +64,7 @@ public class StoreObject {
 
     @Override
     public String toString(){
-        return ("Object [type: "+name+", price: "+price+"]");
+        return ("Object [type: "+name+", price: "+price+ ", url: " + url + ", description: " + description + "]");
     }
 
 }
