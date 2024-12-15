@@ -47,18 +47,18 @@ public class DBTest {
     public void shopTest() throws Exception {
         User u = manager.register("a", "a", "a@a.com");
         StoreObject o = manager.addToStore("plàtan", 3, "images/platan.png", "descripció");
-        manager.buyObject(u.getID(), o.getID(), 1);
-        Assert.assertEquals(47, manager.getUserByID(u.getID()).getMoney(), 0.0001);
+        manager.buyObject(u.getId(), o.getId(), 1);
+        Assert.assertEquals(47, manager.getUserByID(u.getId()).getMoney(), 0.0001);
 
         manager.deleteUser("a");
-        session.delete(StoreObject.class, Map.of("ID", o.getID()));
+        session.delete(StoreObject.class, Map.of("ID", o.getId()));
     }
 
     @Test
     public void userTest() throws Exception {
         User u = manager.register("a", "a", "a@a.com");
-        manager.addPuntos(u.getID(), 5);
-        Assert.assertEquals(5, manager.getUserByID(u.getID()).getPuntos());
+        manager.addPuntos(u.getId(), 5);
+        Assert.assertEquals(5, manager.getUserByID(u.getId()).getPuntos());
         manager.deleteUser("a");
 
     }

@@ -39,8 +39,9 @@ public interface Manager {
     //List of Users
     List<User> findAllUsers() throws SQLException;
     void deleteUser(String username) throws SQLException;
-    User updateUser1(User t, String username) throws SQLException;
-    User updateUser2(User t, String password) throws SQLException;
+    User updateUsername(String userID, String username) throws SQLException;
+    User updateEmail(String userID, String email) throws SQLException;
+    User updatePassword(String userID, PasswordChangeRequest r) throws SQLException, WrongPasswordException;
 
     //Get the Objects of a User and the Store
     List<Inventory> getUserObjects(String userID) throws UserNotFoundException, SQLException;

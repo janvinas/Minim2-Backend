@@ -97,7 +97,7 @@ public class SessionImpl implements Session {
     }
 
     public <T> void update(Class<T> theClass, Map<String, Object> changes, int id) throws SQLException{
-        update(theClass, changes, Map.of("ID", id));
+        update(theClass, changes, Map.of("id", id));
     }
 
     public <T> void delete(Class<T> theClass, Map<String, Object> params) throws SQLException {
@@ -117,7 +117,7 @@ public class SessionImpl implements Session {
     }
 
     public <T> List<T> findAll(Class<T> theClass, String id) throws SQLException{
-        return findAll(theClass, Map.of("ID", id));
+        return findAll(theClass, Map.of("id", id));
     }
 
     public <T> List<T> findAll(Class<T> theClass) throws SQLException{

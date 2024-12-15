@@ -37,7 +37,7 @@ public class QueryHelper {
                 }
             } catch (NoSuchFieldException ignored) {}
         }
-        sb.append(sj).append(") RETURNING ID;");
+        sb.append(sj).append(") RETURNING id;");
 
         return sb.toString();
 

@@ -57,7 +57,7 @@ public class ManagerImpl implements Manager {
 
     public User getUserByID(String userID) throws UserNotFoundException, SQLException{
         for (User u:users){
-            if(u.getID().equals(userID)){
+            if(u.getId().equals(userID)){
                 logger.info("Returning User: "+u);
                 return u;
             }
@@ -179,33 +179,9 @@ public class ManagerImpl implements Manager {
         users.removeIf(u -> u.getUsername().equals(username));
     }
 
-    public User updateUser1(User user, String username){
-        int i = 0;
-        for(User u:users){
-            if(u.getUsername().equals(user.getUsername())){
-                logger.info("Updating user: "+u);
-                u.setUsername(username);
-                logger.info("User with new username: "+u);
-                return u;
-            }
-            i++;
-        }
-        return users.get(i);
-    }
-
-    public User updateUser2(User user, String password){
-        int i = 0;
-        for(User u:users){
-            if(u.getPassword().equals(user.getPassword())){
-                logger.info("Updating user: "+u);
-                u.setPassword(password);
-                logger.info("User with new password: "+u);
-                return u;
-            }
-            i++;
-        }
-        return users.get(i);
-    }
+    public User updateUsername(String userID, String username) throws SQLException{ return null; };
+    public User updateEmail(String userID, String email) throws SQLException{ return null; };
+    public User updatePassword(String userID, PasswordChangeRequest r) throws SQLException, WrongPasswordException{ return null; };
 
     //Get list of objects of a User and the Store
 

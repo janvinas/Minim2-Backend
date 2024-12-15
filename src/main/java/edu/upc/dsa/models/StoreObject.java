@@ -5,7 +5,7 @@ import edu.upc.dsa.DB.SQLNotInsert;
 public class StoreObject {
 
     @SQLNotInsert
-    public String ID;
+    public String id;
     public String name;
     public String description;
     public double price;
@@ -31,12 +31,12 @@ public class StoreObject {
         this.url = url;
     }
 
-    public String getID() {
-        return ID;
+    public String getId() {
+        return id;
     }
 
-    public void setID(String ID) {
-        this.ID = ID;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public StoreObject(String Name, double Price, String URL, String description){

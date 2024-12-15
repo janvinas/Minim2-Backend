@@ -5,10 +5,12 @@ import edu.upc.dsa.dao.DAO;
 import edu.upc.dsa.exceptions.UserNotFoundException;
 import edu.upc.dsa.exceptions.WrongPasswordException;
 import edu.upc.dsa.models.*;
+import edu.upc.dsa.util.PasswordUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.log4j.Logger;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -20,6 +22,7 @@ import java.util.List;
 public class UsersService {
 
     Manager manager = DAO.getInstance();
+    final static Logger logger = Logger.getLogger(UsersService.class);
 
     public UsersService()  {
     }
@@ -36,7 +39,10 @@ public class UsersService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createUser(User user) {
-        if(!user.validate()){ return Response.status(Response.Status.BAD_REQUEST).build(); }
+        if(!user.validate()){
+            logger.warn("Error validating user " + user);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         User result;
         // only add the user if it doesn't exist
         try{
@@ -44,14 +50,15 @@ public class UsersService {
             return Response.status(Response.Status.CONFLICT).build();
         } catch (UserNotFoundException e) {
             try{
-                result = manager.register(user.getUsername(), user.getPassword(), user.getMail());
+                result = manager.register(user.getUsername(), PasswordUtils.getPasswordHash(user.getPassword()), user.getMail());
                 if(result == null) throw new RuntimeException();
-            }catch(SQLException ignored){
+            }catch(SQLException ee){
+                ee.printStackTrace();
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
 
             // creating a user also logs in
-            UserToken token = manager.generateToken(result.getID());
+            UserToken token = manager.generateToken(result.getId());
             NewCookie cookie = new NewCookie("token", token.getToken(), "/", null, null, UserToken.MAX_AGE, false);
             GenericEntity<User> entity = new GenericEntity<User>(result){};
             return Response
@@ -61,7 +68,8 @@ public class UsersService {
                     .build();
 
 
-        }catch(SQLException e){
+        }catch(Exception e){
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -80,9 +88,9 @@ public class UsersService {
         User user;
         try{
             if(login.getUsername() != null){
-                user = manager.login1(login.getUsername(), login.getPassword());
+                user = manager.login1(login.getUsername(), PasswordUtils.getPasswordHash(login.getPassword()));
             }else if(login.getPassword() != null){
-                user = manager.login2(login.getEmail(), login.getPassword());
+                user = manager.login2(login.getEmail(), PasswordUtils.getPasswordHash(login.getPassword()));
             }else{
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
@@ -92,7 +100,7 @@ public class UsersService {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        UserToken token = manager.generateToken(user.getID());
+        UserToken token = manager.generateToken(user.getId());
         NewCookie cookie = new NewCookie("token", token.getToken(), "/", null, null, UserToken.MAX_AGE, false);
         GenericEntity<User> entity = new GenericEntity<User>(user){};
         return Response
@@ -152,6 +160,82 @@ public class UsersService {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+
+    @PUT
+    @Path("/changeUsername/{userID}")
+    @ApiOperation("Change username")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Sucess", response = User.class),
+            @ApiResponse(code = 403, message = "Incorrect credentials"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response changeUsername(@PathParam("userID") String userID, @CookieParam("token") Cookie token, String newUsername){
+        if(token == null || !manager.validateToken(userID, token.getValue())){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        try{
+            User result = manager.updateUsername(userID, newUsername);
+            GenericEntity<User> entity = new GenericEntity<User>(result){};
+            return Response.ok(entity).build();
+        }catch(SQLException e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    @PUT
+    @Path("/changeEmail/{userID}")
+    @ApiOperation("Change email")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Sucess", response = User.class),
+            @ApiResponse(code = 403, message = "Incorrect credentials"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response changeEmail(@PathParam("userID") String userID, @CookieParam("token") Cookie token, String newEmail){
+        if(token == null || !manager.validateToken(userID, token.getValue())){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        try{
+            User result = manager.updateEmail(userID, newEmail);
+            GenericEntity<User> entity = new GenericEntity<User>(result){};
+            return Response.ok(entity).build();
+        }catch(SQLException e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PUT
+    @Path("/changePassword/{userID}")
+    @ApiOperation("Change password")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Sucess", response = User.class),
+            @ApiResponse(code = 403, message = "Incorrect credentials"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response changePassword(@PathParam("userID") String userID, @CookieParam("token") Cookie token, PasswordChangeRequest req){
+        if(token == null || !manager.validateToken(userID, token.getValue())){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        try{
+            User result = manager.updatePassword(userID, req);
+            if(result == null) return Response.status(Response.Status.FORBIDDEN).build();
+            GenericEntity<User> entity = new GenericEntity<User>(result){};
+            return Response.ok(entity).build();
+        }catch(SQLException e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }catch(WrongPasswordException e){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
     }
 
 }

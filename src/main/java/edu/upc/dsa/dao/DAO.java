@@ -5,6 +5,7 @@ import edu.upc.dsa.exceptions.*;
 import edu.upc.dsa.models.*;
 import edu.upc.dsa.orm.FactorySession;
 import edu.upc.dsa.orm.Session;
+import edu.upc.dsa.util.PasswordUtils;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
@@ -47,7 +48,7 @@ public class DAO implements Manager {
 
     @Override
     public User getUserByID(String userID) throws UserNotFoundException, SQLException {
-        User u = session.findAll(User.class, Map.of("ID", userID)).get(0);
+        User u = session.findAll(User.class, Map.of("id", userID)).get(0);
         if(u == null) throw new UserNotFoundException();
         return u;
     }
@@ -61,9 +62,9 @@ public class DAO implements Manager {
 
     @Override
     public void addPuntos(String userID, int puntos) throws UserNotFoundException, SQLException {
-        User u = session.findAll(User.class, Map.of("ID", userID)).get(0);
+        User u = session.findAll(User.class, Map.of("id", userID)).get(0);
         if(u == null) throw new UserNotFoundException();
-        session.update(User.class, Map.of("puntos", u.getPuntos() + puntos), Map.of("ID", userID));
+        session.update(User.class, Map.of("puntos", u.getPuntos() + puntos), Map.of("id", userID));
     }
 
     @Override
@@ -85,19 +86,19 @@ public class DAO implements Manager {
 
     @Override
     public void buyObject(String userID, String objectID, int quantity) throws UserNotFoundException, ObjectNotFoundException, NotEnoughMoneyException, SQLException {
-        User u = session.findAll(User.class, Map.of("ID", userID)).get(0);
+        User u = session.findAll(User.class, Map.of("id", userID)).get(0);
         if(u == null) throw new UserNotFoundException();
-        StoreObject o = session.findAll(StoreObject.class, Map.of("ID", objectID)).get(0);
+        StoreObject o = session.findAll(StoreObject.class, Map.of("id", objectID)).get(0);
         if(o == null) throw new ObjectNotFoundException();
         if(u.getMoney() < o.getPrice()*quantity) throw new NotEnoughMoneyException("Not enough money");
 
-        List<Inventory> inventory = session.findAll(Inventory.class, Map.of("UserID", u.getID(), "ObjectID", o.getID()));
+        List<Inventory> inventory = session.findAll(Inventory.class, Map.of("userID", u.getId(), "objectID", o.getId()));
         if(inventory.isEmpty()){
             session.save(new Inventory(userID, objectID, quantity));
         }else{
-            session.update(Inventory.class, Map.of("quantity", inventory.get(0).getQuantity() + quantity), Map.of("UserID", u.getID(), "ObjectID", o.getID()));
+            session.update(Inventory.class, Map.of("quantity", inventory.get(0).getQuantity() + quantity), Map.of("userID", u.getId(), "objectID", o.getId()));
         }
-        session.update(User.class, Map.of("money", u.getMoney() - o.getPrice()*quantity), Map.of("ID", userID));
+        session.update(User.class, Map.of("money", u.getMoney() - o.getPrice()*quantity), Map.of("id", userID));
     }
 
     @Override
@@ -141,15 +142,37 @@ public class DAO implements Manager {
     }
 
     @Override
-    public User updateUser1(User t, String username) throws SQLException{
-        session.update(User.class, Map.of("ID", t.getID()), Map.of("username", username));
-        return session.findAll(User.class, Map.of("ID", t.getID())).iterator().next();
+    public User updateUsername(String userID, String username) throws SQLException{
+        session.update(User.class, Map.of("username", username), Map.of("id", userID));
+        try{
+            return session.findAll(User.class, Map.of("id", userID)).get(0);
+        }catch(ArrayIndexOutOfBoundsException e){
+            return null;
+        }
     }
 
     @Override
-    public User updateUser2(User t, String password) throws SQLException{
-        session.update(User.class, Map.of("ID", t.getID()), Map.of("password", password));
-        return session.findAll(User.class, Map.of("ID", t.getID())).iterator().next();
+    public User updateEmail(String userID, String email) throws SQLException{
+        session.update(User.class, Map.of("mail", email), Map.of("id", userID));
+        try{
+            return session.findAll(User.class, Map.of("id", userID)).get(0);
+        }catch(ArrayIndexOutOfBoundsException e){
+            return null;
+        }
+    }
+
+    @Override
+    public User updatePassword(String userID, PasswordChangeRequest r) throws SQLException, WrongPasswordException{
+        try{
+            User u = session.findAll(User.class, Map.of("id", userID)).get(0);
+            if(!u.getPassword().equals(PasswordUtils.getPasswordHash(r.getOldPassword()))) throw new WrongPasswordException();
+        }catch(ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
+        String newPasswordHash = PasswordUtils.getPasswordHash(r.getNewPassword());
+        if(newPasswordHash == null) return null;
+        session.update(User.class, Map.of("password", newPasswordHash), Map.of("id", userID));
+        return session.findAll(User.class, Map.of("id", userID)).get(0);
     }
 
     @Override
