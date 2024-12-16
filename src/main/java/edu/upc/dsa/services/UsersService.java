@@ -110,6 +110,32 @@ public class UsersService {
                 .build();
     }
 
+
+    @GET
+    @ApiOperation("Get user information")
+    @Path("userinfo/{userID}")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success", response = User.class),
+            @ApiResponse(code = 403, message = "Incorrect Credentials"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getInfo(@PathParam("userID") String userID, @CookieParam("token") Cookie token) {
+        if(token == null || !manager.validateToken(userID, token.getValue())){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        try{
+            User u = manager.getUserByID(userID);
+            GenericEntity<User> entity = new GenericEntity<>(u){};
+            return Response.ok(entity).build();
+        }catch(UserNotFoundException e){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }catch(SQLException e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GET
     @ApiOperation("Gets objects from user")
     @Path("/getObjects/{userID}")
@@ -216,19 +242,20 @@ public class UsersService {
     @ApiOperation("Change password")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Sucess", response = User.class),
-            @ApiResponse(code = 403, message = "Incorrect credentials"),
+            @ApiResponse(code = 403, message = "Incorrect password"),
+            @ApiResponse(code = 401, message = "Incorrect userID or token"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response changePassword(@PathParam("userID") String userID, @CookieParam("token") Cookie token, PasswordChangeRequest req){
         if(token == null || !manager.validateToken(userID, token.getValue())){
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         try{
             User result = manager.updatePassword(userID, req);
-            if(result == null) return Response.status(Response.Status.FORBIDDEN).build();
+            if(result == null) return Response.status(Response.Status.UNAUTHORIZED).build();
             GenericEntity<User> entity = new GenericEntity<User>(result){};
             return Response.ok(entity).build();
         }catch(SQLException e){

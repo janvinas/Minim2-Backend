@@ -177,7 +177,18 @@ public class DAO implements Manager {
 
     @Override
     public List<Inventory> getUserObjects(String userID) throws UserNotFoundException, SQLException {
-        return session.findAll(Inventory.class, Map.of("userID", userID));
+        List<Inventory> objects = session.findAll(Inventory.class, Map.of("userID", userID));
+        for(Inventory o : objects){
+            try{
+                StoreObject so = session.findAll(StoreObject.class, Map.of("id", o.getObjectID())).get(0);
+                o.setDescription(so.getDescription());
+                o.setName(so.getName());
+                o.setPrice(so.getPrice());
+                o.setUrl(so.getUrl());
+            }catch(ArrayIndexOutOfBoundsException e) {
+            }
+        }
+        return objects;
     }
 
     @Override

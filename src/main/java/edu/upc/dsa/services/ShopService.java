@@ -79,6 +79,7 @@ public class ShopService {
                     .status(Response.Status.PAYMENT_REQUIRED)
                     .build();
         }catch(SQLException e){
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
