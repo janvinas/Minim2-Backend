@@ -6,6 +6,7 @@ public class IssueNotification {
     String message;
     String sender;
 
+    public IssueNotification(){}
 
     public String getDate() {
         return date;

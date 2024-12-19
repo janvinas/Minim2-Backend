@@ -2,7 +2,7 @@
 
 **Atenció!!** Cal clonar el repositori https://github.com/Reda3334/ProyectoDSA-Web a /public 
 
-
+El backend verifica que l'usuari hagi iniciat sessió abans de permetre l'enviament d'una notificació.
 
 ### API REST
 

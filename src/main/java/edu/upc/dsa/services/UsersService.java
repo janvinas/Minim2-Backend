@@ -269,7 +269,7 @@ public class UsersService {
     @Path("/report")
     @ApiOperation("Report Abuse")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Issue created"),
+            @ApiResponse(code = 200, message = "Issue created"),
             @ApiResponse(code = 403, message = "Incorrect credentials"),
             @ApiResponse(code = 400, message = "Bad request"),
             @ApiResponse(code = 500, message = "Internal server error")
