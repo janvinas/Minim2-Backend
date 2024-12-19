@@ -265,4 +265,22 @@ public class UsersService {
         }
     }
 
+    @POST
+    @Path("/report")
+    @ApiOperation("Report Abuse")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Issue created"),
+            @ApiResponse(code = 403, message = "Incorrect credentials"),
+            @ApiResponse(code = 400, message = "Bad request"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    public Response reportAbuse(@CookieParam("token") Cookie token, IssueNotification notification){
+        if(token == null || !manager.validateToken(notification.getSender(), token.getValue())){
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        logger.info("User " + notification.getSender() + " posted the following issue: ");
+        logger.info(notification.toString());
+        return Response.ok().build();
+    }
+
 }

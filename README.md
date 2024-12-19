@@ -1,6 +1,8 @@
-# Backend DSA
+# Mínim 2
 
-Backend del proyecto de DSA
+**Atenció!!** Cal clonar el repositori https://github.com/Reda3334/ProyectoDSA-Web a /public 
+
+
 
 ### API REST
 
